@@ -1,24 +1,432 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>PhishGuard - Advanced Phishing Detection System</title>
-    <meta name="description" content="Protect yourself from phishing attacks with AI-powered detection and comprehensive security education" />
-    <meta name="author" content="Lovable" />
+    <link rel="stylesheet" href="style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <meta name="description" content="AI-powered phishing detection and security education to protect users from cyber threats">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container">
+            <div class="nav-wrapper">
+                <div class="logo">
+                    <i class="fas fa-shield-alt"></i>
+                    <h1>PhishGuard</h1>
+                </div>
+                <nav class="nav-desktop">
+                    <a href="#detector" onclick="scrollToSection('detector')">Detector</a>
+                    <a href="#education" onclick="scrollToSection('education')">Education</a>
+                    <a href="#quiz" onclick="scrollToSection('quiz')">Quiz</a>
+                    <a href="#about" onclick="scrollToSection('about')">About</a>
+                </nav>
+                <button class="menu-toggle" onclick="toggleMobileMenu()">
+                    <i class="fas fa-bars" id="menu-icon"></i>
+                </button>
+            </div>
+            <nav class="nav-mobile" id="mobileNav">
+                <a href="#detector" onclick="scrollToSection('detector')">Detector</a>
+                <a href="#education" onclick="scrollToSection('education')">Education</a>
+                <a href="#quiz" onclick="scrollToSection('quiz')">Quiz</a>
+                <a href="#about" onclick="scrollToSection('about')">About</a>
+            </nav>
+        </div>
+    </header>
 
-    <meta property="og:title" content="PhishGuard - Advanced Phishing Detection System" />
-    <meta property="og:description" content="AI-powered phishing detection and security education to protect users from cyber threats" />
-    <meta property="og:type" content="website" />
-    <meta property="og:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
+    <!-- Hero Section -->
+    <section class="hero">
+        <div class="hero-bg"></div>
+        <div class="container">
+            <div class="hero-content">
+                <img src="src/assets/hero-cybersecurity.jpg" alt="Cybersecurity Analysis" class="hero-image">
+                <h2 class="hero-title">Protect Yourself from Phishing Attacks</h2>
+                <p class="hero-subtitle">Advanced AI-powered detection system with 30+ security features to identify and analyze potential phishing threats in real-time.</p>
+                <button class="hero-btn" onclick="scrollToSection('detector')">
+                    Start Detection <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </section>
 
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:site" content="@lovable_dev" />
-    <meta name="twitter:image" content="https://lovable.dev/opengraph-image-p98pqg.png" />
-  </head>
+    <!-- Detection Center -->
+    <section id="detector" class="detection-section">
+        <div class="container">
+            <div class="section-header">
+                <h3>Advanced Phishing Detection Center</h3>
+                <p>Comprehensive analysis with 36 security features powered by AI and threat intelligence</p>
+            </div>
 
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+            <!-- Tab Navigation -->
+            <div class="tab-navigation">
+                <button class="tab-btn active" onclick="switchTab('url', this)" data-tab="url">
+                    <i class="fas fa-globe"></i> URL Scanner
+                </button>
+                <button class="tab-btn" onclick="switchTab('email', this)" data-tab="email">
+                    <i class="fas fa-envelope"></i> Email Analyzer
+                </button>
+                <button class="tab-btn" onclick="switchTab('website', this)" data-tab="website">
+                    <i class="fas fa-shield-alt"></i> Website Scanner
+                </button>
+                <button class="tab-btn" onclick="switchTab('bulk', this)" data-tab="bulk">
+                    <i class="fas fa-list"></i> Bulk Analysis
+                </button>
+            </div>
+
+            <!-- URL Analysis Tab -->
+            <div id="url-tab" class="tab-content active">
+                <div class="detection-card">
+                    <h4><i class="fas fa-globe"></i> Advanced URL Analysis</h4>
+                    <div class="input-group">
+                        <label>Enter URL to analyze (supports HTTP/HTTPS, domains, IPs):</label>
+                        <input type="url" id="urlInput" placeholder="https://example.com or 192.168.1.1" class="url-input">
+                        <div class="analysis-options">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="deepAnalysis" checked>
+                                <span>Deep Analysis (36 features)</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="realTimeCheck" checked>
+                                <span>Real-time Threat Intelligence</span>
+                            </label>
+                        </div>
+                        <button class="analyze-btn" onclick="analyzeURL()">
+                            <i class="fas fa-search"></i> Analyze URL
+                        </button>
+                    </div>
+                    <div id="urlResults" class="results-container"></div>
+                </div>
+            </div>
+
+            <!-- Email Analysis Tab -->
+            <div id="email-tab" class="tab-content">
+                <div class="detection-card">
+                    <h4><i class="fas fa-envelope"></i> Email Phishing Analysis</h4>
+                    <div class="email-form">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Sender Email:</label>
+                                <input type="email" id="senderEmail" placeholder="sender@example.com">
+                            </div>
+                            <div class="form-group">
+                                <label>Email Subject:</label>
+                                <input type="text" id="emailSubject" placeholder="Email subject line">
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Email Headers (Optional):</label>
+                            <textarea id="emailHeaders" rows="3" placeholder="Paste email headers here..."></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Email Content:</label>
+                            <textarea id="emailContent" rows="8" placeholder="Paste email content here..."></textarea>
+                        </div>
+                        <div class="analysis-options">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="analyzeAttachments" checked>
+                                <span>Analyze Links & Attachments</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="sentimentAnalysis" checked>
+                                <span>Sentiment & Urgency Analysis</span>
+                            </label>
+                        </div>
+                        <button class="analyze-btn" onclick="analyzeEmail()">
+                            <i class="fas fa-envelope-open-text"></i> Analyze Email
+                        </button>
+                    </div>
+                    <div id="emailResults" class="results-container"></div>
+                </div>
+            </div>
+
+            <!-- Website Scanner Tab -->
+            <div id="website-tab" class="tab-content">
+                <div class="detection-card">
+                    <h4><i class="fas fa-shield-alt"></i> Comprehensive Website Scanner</h4>
+                    <div class="input-group">
+                        <label>Website URL:</label>
+                        <input type="url" id="websiteInput" placeholder="https://website-to-scan.com">
+                        <div class="scan-options">
+                            <div class="options-grid">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="checkSSL" checked>
+                                    <span>SSL Certificate Analysis</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="checkDomain" checked>
+                                    <span>Domain Reputation & WHOIS</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="checkContent" checked>
+                                    <span>Content & Structure Analysis</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="checkBehavior" checked>
+                                    <span>Behavioral Analysis</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="checkSEO" checked>
+                                    <span>SEO & Marketing Patterns</span>
+                                </label>
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="checkSocial" checked>
+                                    <span>Social Engineering Indicators</span>
+                                </label>
+                            </div>
+                        </div>
+                        <button class="analyze-btn" onclick="scanWebsite()">
+                            <i class="fas fa-globe"></i> Comprehensive Scan
+                        </button>
+                    </div>
+                    <div id="websiteResults" class="results-container"></div>
+                </div>
+            </div>
+
+            <!-- Bulk Analysis Tab -->
+            <div id="bulk-tab" class="tab-content">
+                <div class="detection-card">
+                    <h4><i class="fas fa-list"></i> Bulk URL Analysis</h4>
+                    <div class="input-group">
+                        <label>Enter URLs (one per line, up to 50):</label>
+                        <textarea id="bulkUrls" rows="10" placeholder="https://example1.com&#10;https://example2.com&#10;..."></textarea>
+                        <div class="bulk-options">
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="exportResults" checked>
+                                <span>Export Results (CSV)</span>
+                            </label>
+                            <label class="checkbox-label">
+                                <input type="checkbox" id="prioritizeRisk" checked>
+                                <span>Prioritize High-Risk Results</span>
+                            </label>
+                        </div>
+                        <button class="analyze-btn" onclick="analyzeBulk()">
+                            <i class="fas fa-list-check"></i> Analyze All URLs
+                        </button>
+                    </div>
+                    <div id="bulkResults" class="results-container"></div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Education Section -->
+    <section id="education" class="education-section">
+        <div class="container">
+            <div class="section-header">
+                <h3>Phishing Education & Awareness</h3>
+                <p>Learn to identify and protect against cyber threats</p>
+            </div>
+
+            <div class="education-grid">
+                <!-- Phishing Warning Signs -->
+                <div class="edu-card">
+                    <img src="src/assets/phishing-warning-signs.jpg" alt="Phishing Warning Signs" class="edu-image">
+                    <h4 class="danger-text">Common Phishing Signs</h4>
+                    <ul class="warning-list">
+                        <li><i class="fas fa-exclamation-triangle"></i> Urgent or threatening language</li>
+                        <li><i class="fas fa-link"></i> Suspicious URLs and domains</li>
+                        <li><i class="fas fa-spell-check"></i> Poor grammar and spelling</li>
+                        <li><i class="fas fa-user-secret"></i> Requests for sensitive information</li>
+                        <li><i class="fas fa-download"></i> Unexpected attachments</li>
+                        <li><i class="fas fa-clock"></i> Time pressure tactics</li>
+                    </ul>
+                </div>
+
+                <!-- Protection Tips -->
+                <div class="edu-card">
+                    <img src="src/assets/security-best-practices.jpg" alt="Security Best Practices" class="edu-image">
+                    <h4 class="safe-text">Protection Strategies</h4>
+                    <ul class="protection-list">
+                        <li><i class="fas fa-shield-alt"></i> Verify sender identity independently</li>
+                        <li><i class="fas fa-mouse-pointer"></i> Hover over links before clicking</li>
+                        <li><i class="fas fa-lock"></i> Use two-factor authentication</li>
+                        <li><i class="fas fa-sync-alt"></i> Keep software updated</li>
+                        <li><i class="fas fa-graduation-cap"></i> Stay informed about threats</li>
+                        <li><i class="fas fa-phone"></i> Call to verify suspicious requests</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Threat Intelligence Feed -->
+            <div class="threat-feed-card">
+                <h4><i class="fas fa-broadcast-tower"></i> Live Threat Intelligence Feed</h4>
+                <div class="feed-controls">
+                    <button class="feed-btn" onclick="refreshThreatFeed()">
+                        <i class="fas fa-sync-alt"></i> Refresh
+                    </button>
+                    <select id="severityFilter" onchange="filterThreats()">
+                        <option value="all">All Severities</option>
+                        <option value="critical">Critical</option>
+                        <option value="high">High</option>
+                        <option value="medium">Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+                <div id="threatFeed" class="threat-feed"></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Quiz -->
+    <section id="quiz" class="quiz-section">
+        <div class="container">
+            <div class="section-header">
+                <h3>Phishing Awareness Quiz</h3>
+                <p>Test your knowledge with randomized questions that change on each visit</p>
+            </div>
+
+            <div class="quiz-card">
+                <div class="quiz-progress">
+                    <div class="progress-info">
+                        <span>Question <span id="currentQuestion">1</span> of <span id="totalQuestions">5</span></span>
+                        <span>Score: <span id="quizScore">0</span></span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressBar"></div>
+                    </div>
+                </div>
+
+                <div id="quizContainer" class="quiz-content">
+                    <h4 id="questionText" class="question-text"></h4>
+                    <div id="optionsContainer" class="options-container"></div>
+                    <div class="quiz-navigation">
+                        <button id="prevBtn" class="nav-btn" onclick="previousQuestion()" disabled>
+                            <i class="fas fa-chevron-left"></i> Previous
+                        </button>
+                        <button id="nextBtn" class="nav-btn primary" onclick="nextQuestion()">
+                            Next <i class="fas fa-chevron-right"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="quizResults" class="quiz-results hidden">
+                    <div class="results-content">
+                        <i class="fas fa-trophy results-icon"></i>
+                        <h4>Quiz Complete!</h4>
+                        <div class="score-display" id="scoreDisplay"></div>
+                        <p id="scoreMessage" class="score-message"></p>
+                        <div class="results-stats">
+                            <div class="stat">
+                                <span class="stat-number" id="correctAnswers">0</span>
+                                <span class="stat-label">Correct</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number" id="incorrectAnswers">0</span>
+                                <span class="stat-label">Incorrect</span>
+                            </div>
+                            <div class="stat">
+                                <span class="stat-number" id="accuracyRate">0%</span>
+                                <span class="stat-label">Accuracy</span>
+                            </div>
+                        </div>
+                        <button class="restart-btn" onclick="restartQuiz()">
+                            <i class="fas fa-redo"></i> Take Quiz Again
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="about-section">
+        <div class="container">
+            <div class="section-header">
+                <h3>About PhishGuard</h3>
+                <p>Advanced cybersecurity protection through intelligent detection</p>
+            </div>
+
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="fas fa-brain feature-icon"></i>
+                    <h4>AI-Powered Detection</h4>
+                    <p>36+ advanced features powered by machine learning algorithms to detect sophisticated phishing attempts.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-users feature-icon"></i>
+                    <h4>Community Protection</h4>
+                    <p>Crowdsourced threat intelligence and real-time updates from security researchers worldwide.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-clock feature-icon"></i>
+                    <h4>Real-Time Analysis</h4>
+                    <p>Instant threat detection with continuous monitoring and immediate security alerts.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-shield-alt feature-icon"></i>
+                    <h4>Comprehensive Security</h4>
+                    <p>Multi-layer protection including URL analysis, email scanning, and behavioral detection.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-chart-line feature-icon"></i>
+                    <h4>Advanced Analytics</h4>
+                    <p>Detailed threat analysis with risk scoring and comprehensive security reporting.</p>
+                </div>
+                <div class="feature-card">
+                    <i class="fas fa-graduation-cap feature-icon"></i>
+                    <h4>Security Education</h4>
+                    <p>Interactive learning modules and awareness training to improve security knowledge.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div class="footer-section">
+                    <div class="footer-logo">
+                        <i class="fas fa-shield-alt"></i>
+                        <h5>PhishGuard</h5>
+                    </div>
+                    <p>Advanced phishing detection and security education platform protecting users worldwide.</p>
+                </div>
+                <div class="footer-section">
+                    <h6>Detection Tools</h6>
+                    <ul>
+                        <li><a href="#detector">URL Scanner</a></li>
+                        <li><a href="#detector">Email Analyzer</a></li>
+                        <li><a href="#detector">Website Scanner</a></li>
+                        <li><a href="#detector">Bulk Analysis</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h6>Resources</h6>
+                    <ul>
+                        <li><a href="#education">Security Education</a></li>
+                        <li><a href="#education">Threat Intelligence</a></li>
+                        <li><a href="#quiz">Security Quiz</a></li>
+                        <li><a href="#about">About PhishGuard</a></li>
+                    </ul>
+                </div>
+                <div class="footer-section">
+                    <h6>Contact</h6>
+                    <ul>
+                        <li><a href="#">Report Phishing</a></li>
+                        <li><a href="#">Support</a></li>
+                        <li><a href="#">Privacy Policy</a></li>
+                        <li><a href="#">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>© 2024 PhishGuard. All rights reserved. Protecting users worldwide from cyber threats.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="loading-content">
+            <div class="spinner"></div>
+            <p id="loadingText">Analyzing...</p>
+        </div>
+    </div>
+
+    <script src="feature_script.js"></script>
+    <script src="script.js"></script>
+</body>
 </html>
