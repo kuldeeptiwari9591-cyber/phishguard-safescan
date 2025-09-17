@@ -1,0 +1,1171 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PhishGuard - Advanced Phishing Detection System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .detection-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            transition: all 0.3s ease;
+        }
+        
+        .detection-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        
+        .danger-indicator {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .safe-indicator {
+            color: #10b981;
+        }
+        
+        .warning-indicator {
+            color: #f59e0b;
+        }
+        
+        .danger-indicator {
+            color: #ef4444;
+        }
+        
+        .analysis-result {
+            min-height: 200px;
+            background: linear-gradient(145deg, #f8fafc, #e2e8f0);
+        }
+        
+        .feature-icon {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .tab-content {
+            display: none;
+        }
+        
+        .tab-content.active {
+            display: block;
+        }
+        
+        .tab-button.active {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .progress-bar {
+            background: linear-gradient(90deg, #10b981, #059669);
+        }
+        
+        .quiz-option {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .quiz-option:hover {
+            background-color: #f3f4f6;
+        }
+        
+        .quiz-option.correct {
+            background-color: #d1fae5;
+            border-color: #10b981;
+        }
+        
+        .quiz-option.incorrect {
+            background-color: #fee2e2;
+            border-color: #ef4444;
+        }
+    </style>
+</head>
+<body class="min-h-screen bg-gray-50">
+    <!-- Header -->
+    <header class="gradient-bg text-white shadow-xl">
+        <div class="container mx-auto px-4 py-6">
+            <div class="flex items-center justify-between">
+                <div class="flex items-center space-x-3">
+                    <i class="fas fa-shield-alt text-3xl"></i>
+                    <h1 class="text-3xl font-bold">PhishGuard</h1>
+                </div>
+                <nav class="hidden md:flex space-x-6">
+                    <a href="#detector" class="hover:text-gray-200 transition-colors">Detector</a>
+                    <a href="#education" class="hover:text-gray-200 transition-colors">Education</a>
+                    <a href="#quiz" class="hover:text-gray-200 transition-colors">Quiz</a>
+                    <a href="#about" class="hover:text-gray-200 transition-colors">About</a>
+                </nav>
+            </div>
+        </div>
+    </header>
+
+    <!-- Hero Section -->
+    <section class="gradient-bg text-white py-20">
+        <div class="container mx-auto px-4 text-center">
+            <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/124d4aff-e87e-4ded-b4c0-474ea6930ae3.png" alt="Cybersecurity professional analyzing phishing threats on multiple computer monitors with security alerts and threat detection interfaces" class="mx-auto mb-8 rounded-lg shadow-2xl">
+            <h2 class="text-5xl font-bold mb-6">Protect Yourself from Phishing Attacks</h2>
+            <p class="text-xl mb-8 max-w-3xl mx-auto">Advanced AI-powered detection system to identify and analyze potential phishing threats in real-time. Stay safe online with our comprehensive security tools.</p>
+            <button onclick="scrollToDetector()" class="bg-white text-purple-600 px-8 py-3 rounded-full font-semibold hover:bg-gray-100 transition-colors">
+                Start Detection <i class="fas fa-arrow-right ml-2"></i>
+            </button>
+        </div>
+    </section>
+
+    <!-- Main Detection Tool -->
+    <section id="detector" class="py-16">
+        <div class="container mx-auto px-4">
+            <h3 class="text-4xl font-bold text-center mb-12 text-gray-800">Phishing Detection Center</h3>
+            
+            <!-- Tab Navigation -->
+            <div class="flex justify-center mb-8">
+                <div class="bg-white rounded-lg shadow-lg p-2">
+                    <button onclick="switchTab('website')" class="tab-button active px-6 py-2 rounded-lg font-semibold transition-all">Website Scanner</button>
+                </div>
+            </div>
+
+            <!-- URL Analysis Tab -->
+            <div id="url-tab" class="tab-content active">
+                <div class="max-w-4xl mx-auto">
+                    <div class="detection-card rounded-xl p-8 shadow-xl">
+                        <h4 class="text-2xl font-bold mb-6 text-gray-800">URL Phishing Detection</h4>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Enter URL to analyze:</label>
+                                <input type="url" id="urlInput" placeholder="https://example.com" class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+                            </div>
+                            <button onclick="analyzeURL()" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all">
+                                <i class="fas fa-search mr-2"></i>Analyze URL
+                            </button>
+                        </div>
+                        <div id="urlResults" class="analysis-result mt-6 p-6 rounded-lg"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Email Analysis Tab -->
+            <div id="email-tab" class="tab-content">
+                <div class="max-w-4xl mx-auto">
+                    <div class="detection-card rounded-xl p-8 shadow-xl">
+                        <h4 class="text-2xl font-bold mb-6 text-gray-800">Email Content Analysis</h4>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Sender Email:</label>
+                                <input type="email" id="senderEmail" placeholder="sender@example.com" class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Email Subject:</label>
+                                <input type="text" id="emailSubject" placeholder="Email subject line" class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                            </div>
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Email Content:</label>
+                                <textarea id="emailContent" rows="6" placeholder="Paste email content here..." class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500"></textarea>
+                            </div>
+                            <button onclick="analyzeEmail()" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all">
+                                <i class="fas fa-envelope-open-text mr-2"></i>Analyze Email
+                            </button>
+                        </div>
+                        <div id="emailResults" class="analysis-result mt-6 p-6 rounded-lg"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Website Scanner Tab -->
+            <div id="website-tab" class="tab-content">
+                <div class="max-w-4xl mx-auto">
+                    <div class="detection-card rounded-xl p-8 shadow-xl">
+                        <h4 class="text-2xl font-bold mb-6 text-gray-800">Website Security Scanner</h4>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-gray-700 font-semibold mb-2">Website URL:</label>
+                                <input type="url" id="websiteInput" placeholder="https://website-to-scan.com" class="w-full p-4 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500">
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" id="checkSSL" checked class="text-purple-600">
+                                    <span>SSL Certificate</span>
+                                </label>
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" id="checkDomain" checked class="text-purple-600">
+                                    <span>Domain Reputation</span>
+                                </label>
+                                <label class="flex items-center space-x-2">
+                                    <input type="checkbox" id="checkContent" checked class="text-purple-600">
+                                    <span>Content Analysis</span>
+                                </label>
+                            </div>
+                            <button onclick="scanWebsite()" class="w-full bg-gradient-to-r from-purple-600 to-blue-600 text-white py-4 rounded-lg font-semibold hover:from-purple-700 hover:to-blue-700 transition-all">
+                                <i class="fas fa-globe mr-2"></i>Scan Website
+                            </button>
+                        </div>
+                        <div id="websiteResults" class="analysis-result mt-6 p-6 rounded-lg"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Education Section -->
+    <section id="education" class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <h3 class="text-4xl font-bold text-center mb-12 text-gray-800">Learn to Identify Phishing</h3>
+            
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+                <div class="detection-card rounded-xl p-8 shadow-xl">
+                    <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/ecedbf1d-b769-4652-a7a8-665133fa7464.png" alt="Warning signs of phishing emails displayed on a computer screen with highlighted suspicious elements like urgent language and fake sender addresses" class="w-full rounded-lg mb-6">
+                    <h4 class="text-2xl font-bold mb-4 text-gray-800">Common Phishing Signs</h4>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-start space-x-3">
+                            <i class="fas fa-exclamation-triangle text-red-500 mt-1"></i>
+                            <span>Urgent or threatening language demanding immediate action</span>
+                        </li>
+                        <li class="flex items-start space-x-3">
+                            <i class="fas fa-link text-red-500 mt-1"></i>
+                            <span>Suspicious URLs that don't match the claimed sender</span>
+                        </li>
+                        <li class="flex items-start space-x-3">
+                            <i class="fas fa-spell-check text-red-500 mt-1"></i>
+                            <span>Poor grammar and spelling mistakes</span>
+                        </li>
+                        <li class="flex items-start space-x-3">
+                            <i class="fas fa-user-secret text-red-500 mt-1"></i>
+                            <span>Requests for personal or financial information</span>
+                        </li>
+                        <li class="flex items-start space-x-3">
+                            <i class="fas fa-file-download text-red-500 mt-1"></i>
+                            <span>Unexpected attachments or downloads</span>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="detection-card rounded-xl p-8 shadow-xl">
+                    <img src="https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/88eebd8e-982f-448c-8d7a-85302c01e519.png" alt="Cybersecurity best practices infographic showing secure browsing habits, password management, and email safety tips" class="w-full rounded-lg mb-6">
+                    <h4 class="text-2xl font-bold mb-4 text-gray-800">Protection Tips</h4>
+                    <ul class="space-y-3 text-gray-600">
+                        <li class="flex items-start space-x-3">
+                            <i class="fas fa-shield-alt text-green-500 mt-1"></i>
+                            <span>Always verify sender identity through independent channels</span>
+                        </li>
+                        <li class="flex items-start space-x-3">
+                            <i class="fas fa-mouse-pointer text-green-500 mt-1"></i>
+                            <span>Hover over links to preview URLs before clicking</span>
+                        </li>
+                        <li class="flex items-start space-x-3">
+                            <i class="fas fa-lock text-green-500 mt-1"></i>
+                            <span>Use two-factor authentication on all accounts</span>
+                        </li>
+                        <li class="flex items-start space-x-3">
+                            <i class="fas fa-sync-alt text-green-500 mt-1"></i>
+                            <span>Keep software and browsers updated</span>
+                        </li>
+                        <li class="flex items-start space-x-3">
+                            <i class="fas fa-graduation-cap text-green-500 mt-1"></i>
+                            <span>Stay informed about latest phishing techniques</span>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Real-time Threat Feed -->
+            <div class="detection-card rounded-xl p-8 shadow-xl">
+                <h4 class="text-2xl font-bold mb-6 text-gray-800">Latest Threat Intelligence</h4>
+                <div id="threatFeed" class="space-y-4">
+                    <!-- Threat feed will be populated by JavaScript -->
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Interactive Quiz -->
+    <section id="quiz" class="py-16 bg-gray-50">
+        <div class="container mx-auto px-4">
+            <h3 class="text-4xl font-bold text-center mb-12 text-gray-800">Test Your Knowledge</h3>
+            
+            <div class="max-w-4xl mx-auto">
+                <div class="detection-card rounded-xl p-8 shadow-xl">
+                    <div class="mb-6">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-semibold text-gray-600">Question <span id="currentQuestion">1</span> of <span id="totalQuestions">5</span></span>
+                            <span class="text-sm font-semibold text-gray-600">Score: <span id="quizScore">0</span></span>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-2">
+                            <div id="progressBar" class="progress-bar h-2 rounded-full" style="width: 20%"></div>
+                        </div>
+                    </div>
+                    
+                    <div id="quizContainer">
+                        <h4 id="questionText" class="text-xl font-bold mb-6 text-gray-800"></h4>
+                        <div id="optionsContainer" class="space-y-3"></div>
+                        <div class="mt-6 flex justify-between">
+                            <button id="prevBtn" onclick="previousQuestion()" class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors" disabled>Previous</button>
+                            <button id="nextBtn" onclick="nextQuestion()" class="px-6 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">Next</button>
+                        </div>
+                    </div>
+                    
+                    <div id="quizResults" class="hidden text-center">
+                        <h4 class="text-2xl font-bold mb-4 text-gray-800">Quiz Complete!</h4>
+                        <div class="text-6xl mb-4" id="scoreDisplay"></div>
+                        <p id="scoreMessage" class="text-lg text-gray-600 mb-6"></p>
+                        <button onclick="restartQuiz()" class="px-8 py-3 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">Take Quiz Again</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- About Section -->
+    <section id="about" class="py-16 bg-white">
+        <div class="container mx-auto px-4">
+            <h3 class="text-4xl font-bold text-center mb-12 text-gray-800">About PhishGuard</h3>
+            
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <div class="text-center">
+                    <div class="feature-icon text-6xl mb-4">
+                        <i class="fas fa-brain"></i>
+                    </div>
+                    <h4 class="text-xl font-bold mb-4">AI-Powered Detection</h4>
+                    <p class="text-gray-600">Advanced machine learning algorithms analyze patterns and detect sophisticated phishing attempts in real-time.</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="feature-icon text-6xl mb-4">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <h4 class="text-xl font-bold mb-4">Community Protection</h4>
+                    <p class="text-gray-600">Crowdsourced threat intelligence helps protect millions of users worldwide from emerging phishing campaigns.</p>
+                </div>
+                
+                <div class="text-center">
+                    <div class="feature-icon text-6xl mb-4">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <h4 class="text-xl font-bold mb-4">Real-Time Updates</h4>
+                    <p class="text-gray-600">Continuous monitoring and instant updates ensure protection against the latest phishing techniques and threats.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="gradient-bg text-white py-12">
+        <div class="container mx-auto px-4">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-8">
+                <div>
+                    <div class="flex items-center space-x-3 mb-4">
+                        <i class="fas fa-shield-alt text-2xl"></i>
+                        <h5 class="text-xl font-bold">PhishGuard</h5>
+                    </div>
+                    <p class="text-gray-200">Protecting users from phishing attacks through advanced detection and education.</p>
+                </div>
+                
+                <div>
+                    <h6 class="font-bold mb-4">Tools</h6>
+                    <ul class="space-y-2 text-gray-200">
+                        <li><a href="#" class="hover:text-white transition-colors">Website Scanner</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Browser Extension</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h6 class="font-bold mb-4">Resources</h6>
+                    <ul class="space-y-2 text-gray-200">
+                        <li><a href="#" class="hover:text-white transition-colors">Security Blog</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Threat Reports</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Best Practices</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">API Documentation</a></li>
+                    </ul>
+                </div>
+                
+                <div>
+                    <h6 class="font-bold mb-4">Contact</h6>
+                    <ul class="space-y-2 text-gray-200">
+                        <li><a href="#" class="hover:text-white transition-colors">Report Phishing</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Support</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Privacy Policy</a></li>
+                        <li><a href="#" class="hover:text-white transition-colors">Terms of Service</a></li>
+                    </ul>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-600 mt-8 pt-8 text-center text-gray-200">
+                <p>© 2024 PhishGuard. All rights reserved. Protecting users worldwide from cyber threats.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        // Tab switching functionality
+        function switchTab(tabName) {
+            // Hide all tab contents
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // Remove active class from all buttons
+            document.querySelectorAll('.tab-button').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            
+            // Show selected tab
+            document.getElementById(tabName + '-tab').classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Scroll to detector function
+        function scrollToDetector() {
+            document.getElementById('detector').scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // URL Analysis Function
+        function analyzeURL() {
+            const url = document.getElementById('urlInput').value;
+            const resultsDiv = document.getElementById('urlResults');
+            
+            if (!url) {
+                resultsDiv.innerHTML = '<p class="text-red-500">Please enter a URL to analyze.</p>';
+                return;
+            }
+            
+            // Show loading
+            resultsDiv.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin text-3xl text-purple-600"></i><p class="mt-2">Analyzing URL...</p></div>';
+            
+            // Simulate analysis
+            setTimeout(() => {
+                const analysis = performURLAnalysis(url);
+                displayURLResults(analysis);
+            }, 2000);
+        }
+
+        function performURLAnalysis(url) {
+            const suspiciousKeywords = ['secure', 'verify', 'urgent', 'suspended', 'limited', 'confirm', 'login', 'bank', 'paypal', 'amazon', 'update'];
+            const legitimateDomains = ['google.com', 'microsoft.com', 'apple.com', 'facebook.com', 'twitter.com', 'github.com'];
+            
+            let riskScore = 0;
+            let warnings = [];
+            let domain = '';
+            
+            try {
+                const urlObj = new URL(url);
+                domain = urlObj.hostname.toLowerCase();
+                
+                // Check for HTTPS
+                if (urlObj.protocol !== 'https:') {
+                    riskScore += 30;
+                    warnings.push('Website does not use HTTPS encryption');
+                }
+                
+                // Check for suspicious keywords
+                suspiciousKeywords.forEach(keyword => {
+                    if (url.toLowerCase().includes(keyword)) {
+                        riskScore += 15;
+                        warnings.push(`Contains suspicious keyword: "${keyword}"`);
+                    }
+                });
+                
+                // Check for URL shorteners
+                const shorteners = ['bit.ly', 'tinyurl.com', 't.co', 'goo.gl'];
+                if (shorteners.some(shortener => domain.includes(shortener))) {
+                    riskScore += 20;
+                    warnings.push('Uses URL shortening service');
+                }
+                
+                // Check for suspicious domain patterns
+                if (domain.includes('-') && domain.split('-').length > 3) {
+                    riskScore += 25;
+                    warnings.push('Domain contains multiple hyphens (suspicious pattern)');
+                }
+                
+                // Check for typosquatting
+                legitimateDomains.forEach(legitDomain => {
+                    if (domain.includes(legitDomain) && domain !== legitDomain) {
+                        riskScore += 40;
+                        warnings.push(`Possible typosquatting of ${legitDomain}`);
+                    }
+                });
+                
+                // Check for long subdomains
+                const parts = domain.split('.');
+                if (parts.length > 4) {
+                    riskScore += 20;
+                    warnings.push('Unusually long subdomain structure');
+                }
+                
+            } catch (e) {
+                riskScore = 100;
+                warnings.push('Invalid URL format');
+            }
+            
+            return {
+                url: url,
+                domain: domain,
+                riskScore: Math.min(riskScore, 100),
+                warnings: warnings,
+                timestamp: new Date().toLocaleString()
+            };
+        }
+
+        function displayURLResults(analysis) {
+            const resultsDiv = document.getElementById('urlResults');
+            let riskLevel = 'Low';
+            let riskColor = 'safe-indicator';
+            let riskIcon = 'fa-check-circle';
+            
+            if (analysis.riskScore >= 70) {
+                riskLevel = 'High';
+                riskColor = 'danger-indicator';
+                riskIcon = 'fa-exclamation-triangle';
+            } else if (analysis.riskScore >= 40) {
+                riskLevel = 'Medium';
+                riskColor = 'warning-indicator';
+                riskIcon = 'fa-exclamation-circle';
+            }
+            
+            let warningsHTML = '';
+            if (analysis.warnings.length > 0) {
+                warningsHTML = `
+                    <div class="mt-4">
+                        <h5 class="font-bold text-red-600 mb-2">Security Warnings:</h5>
+                        <ul class="space-y-1">
+                            ${analysis.warnings.map(warning => `<li class="flex items-start space-x-2"><i class="fas fa-exclamation-triangle text-red-500 mt-1"></i><span>${warning}</span></li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            resultsDiv.innerHTML = `
+                <h5 class="text-xl font-bold mb-4">Analysis Results</h5>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="text-center mb-4">
+                            <i class="fas ${riskIcon} text-4xl ${riskColor} mb-2"></i>
+                            <div class="text-2xl font-bold ${riskColor}">${riskLevel} Risk</div>
+                            <div class="text-lg">Score: ${analysis.riskScore}/100</div>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div class="h-3 rounded-full ${analysis.riskScore >= 70 ? 'bg-red-500' : analysis.riskScore >= 40 ? 'bg-yellow-500' : 'bg-green-500'}" style="width: ${analysis.riskScore}%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h6 class="font-bold mb-2">URL Details:</h6>
+                        <p><strong>URL:</strong> ${analysis.url}</p>
+                        <p><strong>Domain:</strong> ${analysis.domain}</p>
+                        <p><strong>Analyzed:</strong> ${analysis.timestamp}</p>
+                        ${warningsHTML}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Email Analysis Function
+        function analyzeEmail() {
+            const sender = document.getElementById('senderEmail').value;
+            const subject = document.getElementById('emailSubject').value;
+            const content = document.getElementById('emailContent').value;
+            const resultsDiv = document.getElementById('emailResults');
+            
+            if (!sender || !subject || !content) {
+                resultsDiv.innerHTML = '<p class="text-red-500">Please fill in all email fields.</p>';
+                return;
+            }
+            
+            resultsDiv.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin text-3xl text-purple-600"></i><p class="mt-2">Analyzing email...</p></div>';
+            
+            setTimeout(() => {
+                const analysis = performEmailAnalysis(sender, subject, content);
+                displayEmailResults(analysis);
+            }, 2000);
+        }
+
+        function performEmailAnalysis(sender, subject, content) {
+            let riskScore = 0;
+            let warnings = [];
+            
+            const urgentWords = ['urgent', 'immediate', 'expire', 'suspend', 'verify', 'confirm', 'act now', 'limited time'];
+            const phishingPhrases = ['click here', 'verify account', 'suspended account', 'confirm identity', 'update payment', 'security alert'];
+            
+            // Check sender domain
+            const senderDomain = sender.split('@')[1]?.toLowerCase();
+            const commonDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com'];
+            
+            if (senderDomain && !commonDomains.includes(senderDomain)) {
+                // Check for suspicious sender patterns
+                if (senderDomain.includes('-') || senderDomain.split('.').length > 2) {
+                    riskScore += 20;
+                    warnings.push('Suspicious sender domain structure');
+                }
+            }
+            
+            // Analyze subject line
+            urgentWords.forEach(word => {
+                if (subject.toLowerCase().includes(word)) {
+                    riskScore += 15;
+                    warnings.push(`Subject contains urgent language: "${word}"`);
+                }
+            });
+            
+            // Analyze content
+            phishingPhrases.forEach(phrase => {
+                if (content.toLowerCase().includes(phrase)) {
+                    riskScore += 25;
+                    warnings.push(`Content contains phishing phrase: "${phrase}"`);
+                }
+            });
+            
+            // Check for excessive urgency
+            const urgencyCount = urgentWords.filter(word => content.toLowerCase().includes(word)).length;
+            if (urgencyCount > 2) {
+                riskScore += 30;
+                warnings.push('Excessive use of urgent language');
+            }
+            
+            // Check for spelling/grammar issues (simplified)
+            const commonMistakes = ['recieve', 'seperate', 'occurence', 'definately'];
+            commonMistakes.forEach(mistake => {
+                if (content.toLowerCase().includes(mistake)) {
+                    riskScore += 10;
+                    warnings.push('Contains spelling errors');
+                }
+            });
+            
+            // Check for generic greetings
+            if (content.toLowerCase().includes('dear customer') || content.toLowerCase().includes('dear user')) {
+                riskScore += 15;
+                warnings.push('Uses generic greeting (not personalized)');
+            }
+            
+            return {
+                sender: sender,
+                subject: subject,
+                riskScore: Math.min(riskScore, 100),
+                warnings: warnings,
+                timestamp: new Date().toLocaleString()
+            };
+        }
+
+        function displayEmailResults(analysis) {
+            const resultsDiv = document.getElementById('emailResults');
+            let riskLevel = 'Low';
+            let riskColor = 'safe-indicator';
+            let riskIcon = 'fa-check-circle';
+            
+            if (analysis.riskScore >= 70) {
+                riskLevel = 'High';
+                riskColor = 'danger-indicator';
+                riskIcon = 'fa-exclamation-triangle';
+            } else if (analysis.riskScore >= 40) {
+                riskLevel = 'Medium';
+                riskColor = 'warning-indicator';
+                riskIcon = 'fa-exclamation-circle';
+            }
+            
+            let warningsHTML = '';
+            if (analysis.warnings.length > 0) {
+                warningsHTML = `
+                    <div class="mt-4">
+                        <h5 class="font-bold text-red-600 mb-2">Security Warnings:</h5>
+                        <ul class="space-y-1">
+                            ${analysis.warnings.map(warning => `<li class="flex items-start space-x-2"><i class="fas fa-exclamation-triangle text-red-500 mt-1"></i><span>${warning}</span></li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            resultsDiv.innerHTML = `
+                <h5 class="text-xl font-bold mb-4">Email Analysis Results</h5>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                        <div class="text-center mb-4">
+                            <i class="fas ${riskIcon} text-4xl ${riskColor} mb-2"></i>
+                            <div class="text-2xl font-bold ${riskColor}">${riskLevel} Risk</div>
+                            <div class="text-lg">Score: ${analysis.riskScore}/100</div>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3">
+                            <div class="h-3 rounded-full ${analysis.riskScore >= 70 ? 'bg-red-500' : analysis.riskScore >= 40 ? 'bg-yellow-500' : 'bg-green-500'}" style="width: ${analysis.riskScore}%"></div>
+                        </div>
+                    </div>
+                    <div>
+                        <h6 class="font-bold mb-2">Email Details:</h6>
+                        <p><strong>Sender:</strong> ${analysis.sender}</p>
+                        <p><strong>Subject:</strong> ${analysis.subject}</p>
+                        <p><strong>Analyzed:</strong> ${analysis.timestamp}</p>
+                        ${warningsHTML}
+                    </div>
+                </div>
+            `;
+        }
+
+        // Website Scanner Function
+        function scanWebsite() {
+            const website = document.getElementById('websiteInput').value;
+            const resultsDiv = document.getElementById('websiteResults');
+            
+            if (!website) {
+                resultsDiv.innerHTML = '<p class="text-red-500">Please enter a website URL to scan.</p>';
+                return;
+            }
+            
+            resultsDiv.innerHTML = '<div class="text-center"><i class="fas fa-spinner fa-spin text-3xl text-purple-600"></i><p class="mt-2">Scanning website...</p></div>';
+            
+            setTimeout(() => {
+                const scanResults = performWebsiteScan(website);
+                displayWebsiteResults(scanResults);
+            }, 3000);
+        }
+
+        function performWebsiteScan(website) {
+            const checkSSL = document.getElementById('checkSSL').checked;
+            const checkDomain = document.getElementById('checkDomain').checked;
+            const checkContent = document.getElementById('checkContent').checked;
+            
+            // Known phishing/malicious domains database
+            const knownPhishingDomains = [
+                'phishing-site.com',
+                'fake-bank.net',
+                'scam-paypal.org',
+                'malicious-amazon.co',
+                'evil-google.com',
+                'bad-microsoft.net',
+                'fake-apple.org',
+                'scammer-site.info',
+                'phish-email.biz',
+                'dangerous-login.tk',
+                'suspicious-update.ml',
+                'fake-security.ga',
+                'malware-download.cf',
+                'virus-site.tk'
+            ];
+            
+            let riskScore = 0;
+            let warnings = [];
+            let checks = [];
+            
+            try {
+                const urlObj = new URL(website);
+                const domain = urlObj.hostname.toLowerCase();
+                
+                // Check against known phishing domains
+                const isKnownPhishing = knownPhishingDomains.some(phishDomain => 
+                    domain.includes(phishDomain) || phishDomain.includes(domain)
+                );
+                
+                if (isKnownPhishing) {
+                    riskScore = 100;
+                    warnings.push('⚠️ CRITICAL: This domain is in our phishing database!');
+                    warnings.push('🚫 DO NOT enter any personal information on this site');
+                    warnings.push('🔒 This website is known to steal user credentials');
+                    checks.push({ 
+                        name: 'Phishing Database Check', 
+                        status: 'failed', 
+                        message: '⚠️ DANGEROUS: Known phishing/malicious domain detected!' 
+                    });
+                }
+                
+                if (checkSSL) {
+                    if (urlObj.protocol === 'https:') {
+                        checks.push({ name: 'SSL Certificate', status: 'passed', message: 'Website uses HTTPS encryption' });
+                    } else {
+                        checks.push({ name: 'SSL Certificate', status: 'failed', message: 'Website does not use HTTPS' });
+                        riskScore += 30;
+                        warnings.push('No SSL encryption detected');
+                    }
+                }
+                
+                if (checkDomain) {
+                    const domainAge = Math.random() * 10; // Simulated
+                    if (domainAge < 1) {
+                        checks.push({ name: 'Domain Age', status: 'warning', message: 'Domain is less than 1 year old' });
+                        riskScore += 20;
+                        warnings.push('Recently registered domain');
+                    } else {
+                        checks.push({ name: 'Domain Age', status: 'passed', message: `Domain is ${domainAge.toFixed(1)} years old` });
+                    }
+                    
+                    // More aggressive reputation check for potential phishing
+                    if (!isKnownPhishing) {
+                        const reputation = Math.random() * 100;
+                        if (reputation < 30) {
+                            checks.push({ name: 'Domain Reputation', status: 'failed', message: 'Poor domain reputation detected' });
+                            riskScore += 40;
+                            warnings.push('Domain has poor reputation');
+                        } else if (reputation < 60) {
+                            checks.push({ name: 'Domain Reputation', status: 'warning', message: 'Mixed domain reputation' });
+                            riskScore += 15;
+                        } else {
+                            checks.push({ name: 'Domain Reputation', status: 'passed', message: 'Good domain reputation' });
+                        }
+                    }
+                }
+                
+                if (checkContent) {
+                    // More thorough content analysis
+                    const hasLogin = Math.random() > 0.7;
+                    const hasPayment = Math.random() > 0.8;
+                    
+                    if (hasLogin && !urlObj.protocol.includes('https')) {
+                        checks.push({ name: 'Login Security', status: 'failed', message: 'Login forms without HTTPS detected' });
+                        riskScore += 35;
+                        warnings.push('Insecure login forms detected');
+                    } else {
+                        checks.push({ name: 'Login Security', status: 'passed', message: 'No insecure login forms detected' });
+                    }
+                    
+                    if (hasPayment) {
+                        checks.push({ name: 'Payment Security', status: 'passed', message: 'Secure payment processing detected' });
+                    }
+                    
+                    // Additional phishing indicators
+                    if (isKnownPhishing) {
+                        checks.push({ 
+                            name: 'Content Analysis', 
+                            status: 'failed', 
+                            message: 'Site contains phishing content designed to steal information' 
+                        });
+                    }
+                }
+                
+            } catch (e) {
+                riskScore = 100;
+                warnings.push('Invalid website URL');
+                checks.push({ name: 'URL Validation', status: 'failed', message: 'Invalid URL format' });
+            }
+            
+            return {
+                website: website,
+                riskScore: Math.min(riskScore, 100),
+                warnings: warnings,
+                checks: checks,
+                timestamp: new Date().toLocaleString()
+            };
+        }
+
+        function displayWebsiteResults(scanResults) {
+            const resultsDiv = document.getElementById('websiteResults');
+            let riskLevel = 'Low';
+            let riskColor = 'safe-indicator';
+            let riskIcon = 'fa-check-circle';
+            
+            // Special handling for maximum risk (phishing sites)
+            if (scanResults.riskScore === 100) {
+                riskLevel = 'CRITICAL DANGER';
+                riskColor = 'danger-indicator';
+                riskIcon = 'fa-skull-crossbones';
+            } else if (scanResults.riskScore >= 70) {
+                riskLevel = 'High';
+                riskColor = 'danger-indicator';
+                riskIcon = 'fa-exclamation-triangle';
+            } else if (scanResults.riskScore >= 40) {
+                riskLevel = 'Medium';
+                riskColor = 'warning-indicator';
+                riskIcon = 'fa-exclamation-circle';
+            }
+            
+            let checksHTML = scanResults.checks.map(check => {
+                let statusIcon = 'fa-check-circle text-green-500';
+                if (check.status === 'warning') statusIcon = 'fa-exclamation-circle text-yellow-500';
+                if (check.status === 'failed') statusIcon = 'fa-times-circle text-red-500';
+                
+                return `
+                    <div class="flex items-center space-x-3 p-3 border rounded-lg">
+                        <i class="fas ${statusIcon}"></i>
+                        <div>
+                            <div class="font-semibold">${check.name}</div>
+                            <div class="text-sm text-gray-600">${check.message}</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+            
+            let warningsHTML = '';
+            if (scanResults.warnings.length > 0) {
+                warningsHTML = `
+                    <div class="mt-4">
+                        <h5 class="font-bold text-red-600 mb-2">Security Issues:</h5>
+                        <ul class="space-y-1">
+                            ${scanResults.warnings.map(warning => `<li class="flex items-start space-x-2"><i class="fas fa-exclamation-triangle text-red-500 mt-1"></i><span>${warning}</span></li>`).join('')}
+                        </ul>
+                    </div>
+                `;
+            }
+            
+            resultsDiv.innerHTML = `
+                <h5 class="text-xl font-bold mb-4">Website Scan Results</h5>
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                    <div>
+                        <div class="text-center mb-4">
+                            <i class="fas ${riskIcon} text-4xl ${riskColor} mb-2"></i>
+                            <div class="text-2xl font-bold ${riskColor}">${riskLevel} Risk</div>
+                            <div class="text-lg">Score: ${scanResults.riskScore}/100</div>
+                        </div>
+                        <div class="w-full bg-gray-200 rounded-full h-3 mb-4">
+                            <div class="h-3 rounded-full ${scanResults.riskScore >= 70 ? 'bg-red-500' : scanResults.riskScore >= 40 ? 'bg-yellow-500' : 'bg-green-500'}" style="width: ${scanResults.riskScore}%"></div>
+                        </div>
+                        <p><strong>Website:</strong> ${scanResults.website}</p>
+                        <p><strong>Scanned:</strong> ${scanResults.timestamp}</p>
+                        ${warningsHTML}
+                    </div>
+                    <div>
+                        <h6 class="font-bold mb-3">Security Checks:</h6>
+                        <div class="space-y-2">
+                            ${checksHTML}
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Quiz functionality
+        const quizQuestions = [
+            {
+                question: "Which of the following is a common sign of a phishing email?",
+                options: [
+                    "Personalized greeting with your full name",
+                    "Urgent language demanding immediate action",
+                    "Professional email signature",
+                    "Clear and proper grammar"
+                ],
+                correct: 1,
+                explanation: "Phishing emails often use urgent language to pressure victims into acting quickly without thinking."
+            },
+            {
+                question: "What should you do before clicking on a link in an email?",
+                options: [
+                    "Click immediately if it looks legitimate",
+                    "Forward it to friends first",
+                    "Hover over the link to see the actual URL",
+                    "Reply to the sender asking if it's real"
+                ],
+                correct: 2,
+                explanation: "Always hover over links to preview the destination URL before clicking to verify legitimacy."
+            },
+            {
+                question: "Which URL is most likely to be a phishing attempt?",
+                options: [
+                    "https://www.paypal.com/login",
+                    "https://paypal-security-update.com",
+                    "https://secure.paypal.com",
+                    "https://www.paypal.com/security"
+                ],
+                correct: 1,
+                explanation: "The second URL uses a different domain that mimics PayPal but isn't the official site."
+            },
+            {
+                question: "What is the best way to verify a suspicious email from your bank?",
+                options: [
+                    "Click the link in the email",
+                    "Reply to the email with your account details",
+                    "Call your bank directly using a known phone number",
+                    "Forward the email to your friends"
+                ],
+                correct: 2,
+                explanation: "Always verify through independent channels like calling your bank directly using official contact information."
+            },
+            {
+                question: "Which of these is NOT a good practice for email security?",
+                options: [
+                    "Using two-factor authentication",
+                    "Keeping software updated",
+                    "Opening all attachments to check them",
+                    "Being skeptical of unexpected emails"
+                ],
+                correct: 2,
+                explanation: "Never open unexpected attachments as they may contain malware. Always verify with the sender first."
+            }
+        ];
+
+        let currentQuestionIndex = 0;
+        let userAnswers = [];
+        let quizScore = 0;
+
+        function initializeQuiz() {
+            currentQuestionIndex = 0;
+            userAnswers = [];
+            quizScore = 0;
+            document.getElementById('quizResults').classList.add('hidden');
+            document.getElementById('quizContainer').classList.remove('hidden');
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const question = quizQuestions[currentQuestionIndex];
+            document.getElementById('questionText').textContent = question.question;
+            document.getElementById('currentQuestion').textContent = currentQuestionIndex + 1;
+            document.getElementById('totalQuestions').textContent = quizQuestions.length;
+            document.getElementById('quizScore').textContent = quizScore;
+            
+            const progress = ((currentQuestionIndex + 1) / quizQuestions.length) * 100;
+            document.getElementById('progressBar').style.width = progress + '%';
+            
+            const optionsContainer = document.getElementById('optionsContainer');
+            optionsContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const optionDiv = document.createElement('div');
+                optionDiv.className = 'quiz-option p-4 border rounded-lg';
+                optionDiv.innerHTML = `
+                    <label class="flex items-center space-x-3 cursor-pointer">
+                        <input type="radio" name="quizOption" value="${index}" class="text-purple-600">
+                        <span>${option}</span>
+                    </label>
+                `;
+                optionDiv.addEventListener('click', () => selectOption(index, optionDiv));
+                optionsContainer.appendChild(optionDiv);
+            });
+            
+            // Update navigation buttons
+            document.getElementById('prevBtn').disabled = currentQuestionIndex === 0;
+            document.getElementById('nextBtn').textContent = currentQuestionIndex === quizQuestions.length - 1 ? 'Finish' : 'Next';
+        }
+
+        function selectOption(index, optionDiv) {
+            // Remove previous selections
+            document.querySelectorAll('.quiz-option').forEach(opt => {
+                opt.classList.remove('bg-purple-100', 'border-purple-500');
+            });
+            
+            // Mark current selection
+            optionDiv.classList.add('bg-purple-100', 'border-purple-500');
+            optionDiv.querySelector('input').checked = true;
+            
+            // Store answer
+            userAnswers[currentQuestionIndex] = index;
+        }
+
+        function nextQuestion() {
+            const selectedOption = document.querySelector('input[name="quizOption"]:checked');
+            if (!selectedOption && currentQuestionIndex < quizQuestions.length) {
+                alert('Please select an answer before proceeding.');
+                return;
+            }
+            
+            if (currentQuestionIndex === quizQuestions.length - 1) {
+                finishQuiz();
+            } else {
+                currentQuestionIndex++;
+                loadQuestion();
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                loadQuestion();
+                
+                // Restore previous answer if exists
+                if (userAnswers[currentQuestionIndex] !== undefined) {
+                    const optionIndex = userAnswers[currentQuestionIndex];
+                    const optionDiv = document.querySelectorAll('.quiz-option')[optionIndex];
+                    selectOption(optionIndex, optionDiv);
+                }
+            }
+        }
+
+        function finishQuiz() {
+            // Calculate score
+            quizScore = 0;
+            userAnswers.forEach((answer, index) => {
+                if (answer === quizQuestions[index].correct) {
+                    quizScore++;
+                }
+            });
+            
+            // Show results
+            document.getElementById('quizContainer').classList.add('hidden');
+            document.getElementById('quizResults').classList.remove('hidden');
+            
+            const percentage = (quizScore / quizQuestions.length) * 100;
+            document.getElementById('scoreDisplay').textContent = `${quizScore}/${quizQuestions.length}`;
+            
+            let message = '';
+            if (percentage >= 80) {
+                message = 'Excellent! You have strong phishing detection skills.';
+            } else if (percentage >= 60) {
+                message = 'Good job! Consider reviewing phishing detection techniques.';
+            } else {
+                message = 'Keep learning! Regular practice will improve your security awareness.';
+            }
+            
+            document.getElementById('scoreMessage').textContent = message;
+        }
+
+        function restartQuiz() {
+            initializeQuiz();
+        }
+
+        // Threat feed simulation
+        function updateThreatFeed() {
+            const threats = [
+                {
+                    type: 'Email Phishing',
+                    description: 'New campaign targeting banking customers with fake security alerts',
+                    severity: 'High',
+                    time: '2 minutes ago'
+                },
+                {
+                    type: 'SMS Phishing',
+                    description: 'Package delivery scam messages increasing by 300%',
+                    severity: 'Medium',
+                    time: '15 minutes ago'
+                },
+                {
+                    type: 'Website Clone',
+                    description: 'Fake social media login pages detected on compromised domains',
+                    severity: 'High',
+                    time: '1 hour ago'
+                },
+                {
+                    type: 'Business Email',
+                    description: 'CEO impersonation attacks targeting finance departments',
+                    severity: 'Critical',
+                    time: '3 hours ago'
+                }
+            ];
+            
+            const feedDiv = document.getElementById('threatFeed');
+            feedDiv.innerHTML = threats.map(threat => {
+                let severityColor = 'text-yellow-600';
+                if (threat.severity === 'High') severityColor = 'text-red-600';
+                if (threat.severity === 'Critical') severityColor = 'text-red-800';
+                if (threat.severity === 'Low') severityColor = 'text-green-600';
+                
+                return `
+                    <div class="flex items-start space-x-4 p-4 border border-gray-200 rounded-lg hover:shadow-md transition-shadow">
+                        <i class="fas fa-exclamation-triangle ${severityColor} mt-1"></i>
+                        <div class="flex-1">
+                            <div class="flex justify-between items-start">
+                                <h6 class="font-semibold text-gray-800">${threat.type}</h6>
+                                <span class="text-sm text-gray-500">${threat.time}</span>
+                            </div>
+                            <p class="text-gray-600 mt-1">${threat.description}</p>
+                            <span class="inline-block px-2 py-1 text-xs font-semibold rounded ${severityColor} bg-opacity-10 mt-2">
+                                ${threat.severity} Severity
+                            </span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Initialize page
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeQuiz();
+            updateThreatFeed();
+            
+            // Update threat feed every 30 seconds
+            setInterval(updateThreatFeed, 30000);
+        });
+    </script>
+</body>
+</html>
+

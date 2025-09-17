@@ -2,39 +2,65 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* PhishGuard Design System - Modern cybersecurity theme with elegant gradients */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
+    --background: 248 250 252;
     --foreground: 222.2 84% 4.9%;
 
-    --card: 0 0% 100%;
+    --card: 255 255 255;
     --card-foreground: 222.2 84% 4.9%;
 
-    --popover: 0 0% 100%;
+    --popover: 255 255 255;
     --popover-foreground: 222.2 84% 4.9%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary purple gradient theme */
+    --primary: 259 100% 65%;
+    --primary-foreground: 255 255 255;
+    --primary-glow: 258 92% 78%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary blue accent */
+    --secondary: 217 91% 60%;
+    --secondary-foreground: 255 255 255;
 
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 217 91% 60%;
+    --accent-foreground: 255 255 255;
+
+    /* Security color indicators */
+    --safe: 142 76% 36%;
+    --safe-foreground: 255 255 255;
+    --warning: 38 92% 50%;
+    --warning-foreground: 255 255 255;
+    --danger: 0 84% 60%;
+    --danger-foreground: 255 255 255;
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 255 255 255;
 
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    --ring: 259 100% 65%;
+
+    /* Custom gradients for PhishGuard */
+    --gradient-primary: linear-gradient(135deg, hsl(259 100% 65%), hsl(217 91% 60%));
+    --gradient-hero: linear-gradient(135deg, hsl(259 100% 65%) 0%, hsl(258 92% 78%) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(248 250 252), hsl(226 100% 97%));
+    --gradient-safe: linear-gradient(90deg, hsl(142 76% 36%), hsl(160 84% 39%));
+    --gradient-warning: linear-gradient(90deg, hsl(38 92% 50%), hsl(43 96% 56%));
+    --gradient-danger: linear-gradient(90deg, hsl(0 84% 60%), hsl(346 87% 43%));
+
+    /* Shadows and effects */
+    --shadow-elegant: 0 10px 30px -10px hsl(259 100% 65% / 0.3);
+    --shadow-glow: 0 0 40px hsl(258 92% 78% / 0.4);
+    --shadow-card: 0 20px 40px hsl(0 0% 0% / 0.1);
+
+    /* Animations */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --pulse-animation: pulse 2s ease-in-out infinite;
 
     --radius: 0.5rem;
 
@@ -101,5 +127,49 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+  }
+  
+  /* Custom scrollbar */
+  ::-webkit-scrollbar {
+    width: 8px;
+  }
+  
+  ::-webkit-scrollbar-track {
+    @apply bg-muted;
+  }
+  
+  ::-webkit-scrollbar-thumb {
+    @apply bg-muted-foreground/30 rounded-full;
+  }
+  
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-muted-foreground/50;
+  }
+
+  /* Smooth scrolling */
+  html {
+    scroll-behavior: smooth;
+  }
+
+  /* Animation utilities */
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes slideUp {
+    from { opacity: 0; transform: translateY(40px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes glow {
+    0% { box-shadow: 0 0 20px hsl(var(--primary) / 0.3); }
+    100% { box-shadow: 0 0 40px hsl(var(--primary) / 0.6); }
+  }
+
+  @keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.5; }
   }
 }
