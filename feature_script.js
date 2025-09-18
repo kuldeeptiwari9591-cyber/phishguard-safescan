@@ -1,11 +1,12 @@
-// PhishGuard Client-Side Feature Extraction - 36 Advanced Security Features
+// PhishGuard Advanced Client-Side Feature Extraction - 36+ Security Features
 
-// URL Feature Extraction (Features 1-20)
-function extractURLFeatures(url) {
+// Enhanced URL Feature Extraction with Machine Learning-inspired Logic
+function extractAdvancedURLFeatures(url) {
     let riskScore = 0;
     let warnings = [];
     let features = {};
     let domain = '';
+    let confidenceFactors = [];
     
     try {
         // Normalize URL - add protocol if missing
@@ -17,806 +18,882 @@ function extractURLFeatures(url) {
         const urlObj = new URL(normalizedUrl);
         domain = urlObj.hostname.toLowerCase();
         
-        // Feature 1: Protocol Security Check
-        if (urlObj.protocol !== 'https:') {
-            riskScore += 25;
-            warnings.push('Website does not use secure HTTPS protocol');
-            features.httpsProtocol = false;
-        } else {
-            features.httpsProtocol = true;
-        }
+        // Feature 1: Advanced Protocol Security Analysis
+        const protocolAnalysis = analyzeProtocol(urlObj, normalizedUrl);
+        riskScore += protocolAnalysis.risk;
+        features = { ...features, ...protocolAnalysis.features };
+        warnings.push(...protocolAnalysis.warnings);
         
-        // Feature 2: URL Length Analysis
-        if (normalizedUrl.length > 150) {
-            riskScore += 20;
-            warnings.push('Unusually long URL (potential obfuscation)');
-            features.urlLength = 'excessive';
-        } else if (normalizedUrl.length > 100) {
-            riskScore += 10;
-            features.urlLength = 'long';
-        } else {
-            features.urlLength = 'normal';
-        }
+        // Feature 2-5: Comprehensive URL Structure Analysis
+        const structureAnalysis = analyzeURLStructure(normalizedUrl, urlObj);
+        riskScore += structureAnalysis.risk;
+        features = { ...features, ...structureAnalysis.features };
+        warnings.push(...structureAnalysis.warnings);
         
-        // Feature 3: @ Symbol Detection (URL Redirection)
-        if (normalizedUrl.includes('@')) {
-            riskScore += 35;
-            warnings.push('Contains @ symbol (used for URL redirection attacks)');
-            features.hasAtSymbol = true;
-        } else {
-            features.hasAtSymbol = false;
-        }
+        // Feature 6-10: Advanced Domain Analysis
+        const domainAnalysis = analyzeDomainFeatures(domain, urlObj);
+        riskScore += domainAnalysis.risk;
+        features = { ...features, ...domainAnalysis.features };
+        warnings.push(...domainAnalysis.warnings);
         
-        // Feature 4: Double Slash Detection
-        const doubleSlashCount = (normalizedUrl.match(/\/\//g) || []).length;
-        if (doubleSlashCount > 1) {
-            riskScore += 30;
-            warnings.push('Multiple // sequences detected (redirection technique)');
-            features.multipleSlashes = true;
-        } else {
-            features.multipleSlashes = false;
-        }
+        // Feature 11-15: Content and Parameter Analysis
+        const contentAnalysis = analyzeURLContent(urlObj, normalizedUrl);
+        riskScore += contentAnalysis.risk;
+        features = { ...features, ...contentAnalysis.features };
+        warnings.push(...contentAnalysis.warnings);
         
-        // Feature 5: Dot Count (Subdomain Analysis)
-        const dotCount = (domain.match(/\./g) || []).length;
-        if (dotCount > 4) {
-            riskScore += 25;
-            warnings.push('Excessive subdomain structure detected');
-            features.excessiveSubdomains = true;
-        } else if (dotCount > 3) {
-            riskScore += 15;
-            features.excessiveSubdomains = false;
-        } else {
-            features.excessiveSubdomains = false;
-        }
-        features.subdomainCount = dotCount;
+        // Feature 16-20: Security Pattern Recognition
+        const securityAnalysis = analyzeSecurityPatterns(normalizedUrl, domain);
+        riskScore += securityAnalysis.risk;
+        features = { ...features, ...securityAnalysis.features };
+        warnings.push(...securityAnalysis.warnings);
         
-        // Feature 6: Hyphen Count Analysis
-        const hyphenCount = (domain.match(/-/g) || []).length;
-        if (hyphenCount > 4) {
-            riskScore += 20;
-            warnings.push('Domain contains excessive hyphens (suspicious pattern)');
-            features.excessiveHyphens = true;
-        } else if (hyphenCount > 2) {
-            riskScore += 10;
-            features.excessiveHyphens = false;
-        } else {
-            features.excessiveHyphens = false;
-        }
-        features.hyphenCount = hyphenCount;
+        // Feature 21-25: Behavioral Analysis
+        const behaviorAnalysis = analyzeBehavioralPatterns(normalizedUrl, domain, urlObj);
+        riskScore += behaviorAnalysis.risk;
+        features = { ...features, ...behaviorAnalysis.features };
+        warnings.push(...behaviorAnalysis.warnings);
         
-        // Feature 7: Suspicious Keywords Detection
-        const suspiciousKeywords = [
-            'secure', 'verify', 'urgent', 'suspended', 'limited', 'confirm', 
-            'login', 'bank', 'paypal', 'amazon', 'update', 'billing', 
-            'account-locked', 'security-alert', 'immediate', 'expires'
-        ];
+        // Feature 26-30: Advanced Threat Intelligence
+        const threatAnalysis = analyzeThreatIntelligence(normalizedUrl, domain);
+        riskScore += threatAnalysis.risk;
+        features = { ...features, ...threatAnalysis.features };
+        warnings.push(...threatAnalysis.warnings);
         
-        let keywordCount = 0;
-        suspiciousKeywords.forEach(keyword => {
-            if (normalizedUrl.toLowerCase().includes(keyword)) {
-                keywordCount++;
-                riskScore += 12;
-                warnings.push(`Contains suspicious keyword: "${keyword}"`);
-            }
-        });
-        features.suspiciousKeywords = keywordCount;
+        // Feature 31-36: Machine Learning Inspired Analysis
+        const mlAnalysis = performMLInspiredAnalysis(normalizedUrl, domain, features);
+        riskScore += mlAnalysis.risk;
+        features = { ...features, ...mlAnalysis.features };
+        warnings.push(...mlAnalysis.warnings);
         
-        // Feature 8: URL Shortener Detection
-        const shorteners = [
-            'bit.ly', 'tinyurl.com', 't.co', 'goo.gl', 'ow.ly', 
-            'buff.ly', 'short.link', 'tiny.cc', 'is.gd', 'v.gd'
-        ];
-        
-        const isShortener = shorteners.some(shortener => domain.includes(shortener));
-        if (isShortener) {
-            riskScore += 25;
-            warnings.push('Uses URL shortening service (potential link hiding)');
-            features.isShortener = true;
-        } else {
-            features.isShortener = false;
-        }
-        
-        // Feature 9: Special Character Analysis
-        const specialChars = /[!@#$%^&*()_+=\[\]{};':"\\|,.<>\/?~`]/g;
-        const specialCharCount = (normalizedUrl.match(specialChars) || []).length;
-        if (specialCharCount > 15) {
-            riskScore += 15;
-            warnings.push('Excessive special characters detected');
-            features.excessiveSpecialChars = true;
-        } else {
-            features.excessiveSpecialChars = false;
-        }
-        features.specialCharCount = specialCharCount;
-        
-        // Feature 10: Path Length Analysis
-        const pathLength = urlObj.pathname.length;
-        if (pathLength > 100) {
-            riskScore += 15;
-            warnings.push('Unusually long URL path detected');
-            features.longPath = true;
-        } else {
-            features.longPath = false;
-        }
-        features.pathLength = pathLength;
-        
-        // Feature 11: URL Parameter Analysis
-        const paramCount = Array.from(urlObj.searchParams).length;
-        if (paramCount > 8) {
-            riskScore += 20;
-            warnings.push('Excessive URL parameters detected');
-            features.excessiveParams = true;
-        } else {
-            features.excessiveParams = false;
-        }
-        features.parameterCount = paramCount;
-        
-        // Feature 12: URL Encoding Analysis
-        const encodingPattern = /%[0-9A-Fa-f]{2}/g;
-        const encodingCount = (normalizedUrl.match(encodingPattern) || []).length;
-        if (encodingCount > 5) {
-            riskScore += 18;
-            warnings.push('Excessive URL encoding detected (potential obfuscation)');
-            features.excessiveEncoding = true;
-        } else {
-            features.excessiveEncoding = false;
-        }
-        features.encodingCount = encodingCount;
-        
-        // Feature 13: IP Address Detection
-        const ipPattern = /^(?:[0-9]{1,3}\.){3}[0-9]{1,3}$/;
-        if (ipPattern.test(domain)) {
-            riskScore += 40;
-            warnings.push('Uses IP address instead of domain name');
-            features.usesIPAddress = true;
-        } else {
-            features.usesIPAddress = false;
-        }
-        
-        // Feature 14: Non-standard Port Detection
-        if (urlObj.port && !['80', '443', ''].includes(urlObj.port)) {
-            riskScore += 25;
-            warnings.push(`Uses non-standard port: ${urlObj.port}`);
-            features.nonStandardPort = true;
-        } else {
-            features.nonStandardPort = false;
-        }
-        
-        // Feature 15: Typosquatting Detection
-        const legitimateDomains = [
-            'google.com', 'microsoft.com', 'apple.com', 'facebook.com', 
-            'twitter.com', 'github.com', 'amazon.com', 'paypal.com',
-            'ebay.com', 'linkedin.com', 'netflix.com', 'spotify.com'
-        ];
-        
-        legitimateDomains.forEach(legitDomain => {
-            if (domain.includes(legitDomain) && domain !== legitDomain) {
-                riskScore += 45;
-                warnings.push(`Possible typosquatting of ${legitDomain}`);
-                features.possibleTyposquatting = legitDomain;
-            }
-        });
-        
-        // Feature 16: Domain Extension Analysis
-        const suspiciousExtensions = ['.tk', '.ml', '.ga', '.cf', '.click', '.download', '.zip', '.top'];
-        const domainExtension = '.' + domain.split('.').pop();
-        if (suspiciousExtensions.includes(domainExtension)) {
-            riskScore += 20;
-            warnings.push(`Uses suspicious domain extension: ${domainExtension}`);
-            features.suspiciousTLD = true;
-        } else {
-            features.suspiciousTLD = false;
-        }
-        
-        // Feature 17: Numeric Domain Analysis
-        const numericRatio = (domain.match(/\d/g) || []).length / domain.length;
-        if (numericRatio > 0.3) {
-            riskScore += 15;
-            warnings.push('Domain contains excessive numeric characters');
-            features.excessiveNumbers = true;
-        } else {
-            features.excessiveNumbers = false;
-        }
-        
-        // Feature 18: Consonant Vowel Ratio
-        const vowels = (domain.match(/[aeiou]/gi) || []).length;
-        const consonants = (domain.match(/[bcdfghjklmnpqrstvwxyz]/gi) || []).length;
-        const cvRatio = consonants / (vowels || 1);
-        if (cvRatio > 4) {
-            riskScore += 10;
-            warnings.push('Unusual consonant-vowel ratio in domain');
-            features.unusualCVRatio = true;
-        } else {
-            features.unusualCVRatio = false;
-        }
-        
-        // Feature 19: Homograph Detection (Basic)
-        const homographChars = /[а-яё]/gi; // Cyrillic characters
-        if (homographChars.test(domain)) {
-            riskScore += 35;
-            warnings.push('Domain contains potential homograph characters');
-            features.homographDetected = true;
-        } else {
-            features.homographDetected = false;
-        }
-        
-        // Feature 20: Brand Impersonation Detection
-        const brandKeywords = [
-            'microsoft', 'google', 'apple', 'amazon', 'paypal', 'ebay',
-            'bank', 'secure', 'login', 'account', 'verify', 'update'
-        ];
-        
-        let brandImpersonation = false;
-        brandKeywords.forEach(brand => {
-            if (domain.includes(brand) && !domain.startsWith(brand + '.')) {
-                riskScore += 30;
-                warnings.push(`Potential brand impersonation detected: ${brand}`);
-                brandImpersonation = true;
-            }
-        });
-        features.brandImpersonation = brandImpersonation;
+        // Calculate confidence score
+        const confidenceScore = calculateConfidenceScore(features, warnings.length);
+        features.confidenceScore = confidenceScore;
         
     } catch (error) {
-        riskScore = 90;
-        warnings.push('Invalid URL format or parsing error');
+        riskScore = 95;
+        warnings.push('Critical: Invalid URL format or parsing error');
         features.invalidURL = true;
+        features.parseError = error.message;
     }
+    
+    // Final risk assessment with weighted scoring
+    const finalScore = Math.min(applyWeightedScoring(riskScore, features), 100);
     
     return {
         url: url,
         domain: domain,
-        riskScore: Math.min(riskScore, 100),
-        warnings: warnings,
+        riskScore: finalScore,
+        warnings: warnings.filter(w => w), // Remove empty warnings
         features: features,
-        timestamp: new Date().toLocaleString()
+        timestamp: new Date().toLocaleString(),
+        riskLevel: determineRiskLevel(finalScore)
     };
 }
 
-// Email Feature Extraction (Features 21-30)
-function extractEmailFeatures(emailData) {
-    const { sender, subject, content, headers } = emailData;
-    let riskScore = 0;
+// Feature 1: Advanced Protocol Security Analysis
+function analyzeProtocol(urlObj, normalizedUrl) {
+    let risk = 0;
     let warnings = [];
     let features = {};
     
-    // Feature 21: Sender Domain Analysis
-    try {
-        const senderDomain = sender.split('@')[1]?.toLowerCase();
-        const freeDomains = ['gmail.com', 'yahoo.com', 'outlook.com', 'hotmail.com', 'aol.com'];
-        
-        if (senderDomain) {
-            features.senderDomain = senderDomain;
-            
-            // Check for suspicious sender patterns
-            if (senderDomain.includes('-') && senderDomain.split('-').length > 2) {
-                riskScore += 25;
-                warnings.push('Suspicious sender domain structure');
-            }
-            
-            // Check domain length
-            if (senderDomain.length > 20) {
-                riskScore += 15;
-                warnings.push('Unusually long sender domain');
-            }
-            
-            // Check for typosquatting in sender domain
-            const legitEmailDomains = ['gmail.com', 'outlook.com', 'yahoo.com'];
-            legitEmailDomains.forEach(domain => {
-                if (senderDomain.includes(domain.substring(0, -4)) && senderDomain !== domain) {
-                    riskScore += 35;
-                    warnings.push(`Sender domain mimics ${domain}`);
-                }
-            });
-        }
-    } catch (e) {
-        riskScore += 30;
-        warnings.push('Invalid sender email format');
-    }
-    
-    // Feature 22: Subject Line Analysis
-    const urgentWords = [
-        'urgent', 'immediate', 'expire', 'suspend', 'verify', 'confirm',
-        'act now', 'limited time', 'expires today', 'final notice', 'last chance'
-    ];
-    
-    let urgencyScore = 0;
-    urgentWords.forEach(word => {
-        if (subject.toLowerCase().includes(word)) {
-            urgencyScore += 15;
-            warnings.push(`Subject contains urgent language: "${word}"`);
-        }
-    });
-    riskScore += Math.min(urgencyScore, 45);
-    features.subjectUrgency = urgencyScore;
-    
-    // Feature 23: Subject Line Capitalization
-    const allCapsRatio = (subject.match(/[A-Z]/g) || []).length / subject.length;
-    if (allCapsRatio > 0.6) {
-        riskScore += 20;
-        warnings.push('Subject line uses excessive capitalization');
-        features.excessiveCaps = true;
+    // HTTPS Analysis
+    if (urlObj.protocol !== 'https:') {
+        risk += 30;
+        warnings.push('Website does not use secure HTTPS protocol - data transmission is not encrypted');
+        features.httpsProtocol = false;
+        features.protocolSecurity = 'insecure';
     } else {
-        features.excessiveCaps = false;
+        features.httpsProtocol = true;
+        features.protocolSecurity = 'secure';
     }
     
-    // Feature 24: Content Phishing Phrases
-    const phishingPhrases = [
-        'click here', 'verify account', 'suspended account', 'confirm identity',
-        'update payment', 'security alert', 'unusual activity', 'immediate action required',
-        'confirm your information', 'reactivate your account', 'temporary suspension'
-    ];
-    
-    let phraseCount = 0;
-    phishingPhrases.forEach(phrase => {
-        if (content.toLowerCase().includes(phrase)) {
-            phraseCount++;
-            riskScore += 20;
-            warnings.push(`Content contains phishing phrase: "${phrase}"`);
-        }
-    });
-    features.phishingPhrases = phraseCount;
-    
-    // Feature 25: Generic Greetings Detection
-    const genericGreetings = [
-        'dear customer', 'dear user', 'dear valued customer', 'dear account holder',
-        'dear sir/madam', 'greetings', 'hello user'
-    ];
-    
-    const hasGenericGreeting = genericGreetings.some(greeting => 
-        content.toLowerCase().includes(greeting)
-    );
-    
-    if (hasGenericGreeting) {
-        riskScore += 18;
-        warnings.push('Uses generic greeting instead of personalization');
-        features.genericGreeting = true;
-    } else {
-        features.genericGreeting = false;
+    // Mixed Content Detection
+    if (normalizedUrl.includes('http://') && normalizedUrl.includes('https://')) {
+        risk += 25;
+        warnings.push('Mixed content detected - combination of secure and insecure protocols');
+        features.mixedContent = true;
     }
     
-    // Feature 26: Spelling and Grammar Analysis
-    const commonMistakes = [
-        'recieve', 'seperate', 'occurence', 'definately', 'loose',
-        'there account', 'you\'re account', 'cant', 'wont', 'dont'
-    ];
-    
-    let grammarIssues = 0;
-    commonMistakes.forEach(mistake => {
-        if (content.toLowerCase().includes(mistake)) {
-            grammarIssues++;
-            riskScore += 8;
-        }
-    });
-    
-    if (grammarIssues > 0) {
-        warnings.push(`Content contains ${grammarIssues} spelling/grammar errors`);
-        features.grammarIssues = grammarIssues;
-    } else {
-        features.grammarIssues = 0;
+    // Protocol Downgrade Attack Detection
+    if (normalizedUrl.match(/https?:\/\/.*https?:\/\//)) {
+        risk += 35;
+        warnings.push('Potential protocol downgrade attack detected');
+        features.protocolDowngrade = true;
     }
     
-    // Feature 27: Link Analysis
-    const linkPattern = /https?:\/\/[^\s<>"']+/gi;
-    const links = content.match(linkPattern) || [];
-    
-    if (links.length > 5) {
-        riskScore += 25;
-        warnings.push('Email contains excessive number of links');
-        features.excessiveLinks = true;
-    } else if (links.length > 2) {
-        riskScore += 10;
-        features.excessiveLinks = false;
-    } else {
-        features.excessiveLinks = false;
-    }
-    features.linkCount = links.length;
-    
-    // Analyze individual links
-    links.forEach(link => {
-        try {
-            const urlFeatures = extractURLFeatures(link);
-            if (urlFeatures.riskScore > 50) {
-                riskScore += 20;
-                warnings.push('Email contains high-risk URL');
-            }
-        } catch (e) {
-            riskScore += 10;
-            warnings.push('Email contains malformed URL');
-        }
-    });
-    
-    // Feature 28: Attachment References
-    const attachmentKeywords = [
-        'attachment', 'attached', 'document', 'file', 'download',
-        'invoice', 'receipt', 'statement', 'report', 'pdf'
-    ];
-    
-    const hasAttachmentRef = attachmentKeywords.some(keyword => 
-        content.toLowerCase().includes(keyword)
-    );
-    
-    if (hasAttachmentRef) {
-        riskScore += 15;
-        warnings.push('Email references attachments (potential malware vector)');
-        features.attachmentReference = true;
-    } else {
-        features.attachmentReference = false;
-    }
-    
-    // Feature 29: Emotional Manipulation Detection
-    const emotionalWords = [
-        'congratulations', 'winner', 'prize', 'lottery', 'inheritance',
-        'emergency', 'help', 'stranded', 'accident', 'hospital', 'charity'
-    ];
-    
-    let emotionalScore = 0;
-    emotionalWords.forEach(word => {
-        if (content.toLowerCase().includes(word)) {
-            emotionalScore += 10;
-        }
-    });
-    
-    if (emotionalScore > 20) {
-        riskScore += 25;
-        warnings.push('Email uses emotional manipulation techniques');
-        features.emotionalManipulation = true;
-    } else {
-        features.emotionalManipulation = false;
-    }
-    
-    // Feature 30: Sender Display Name Analysis
-    const displayNamePattern = /"?([^"<]+)"?\s*</;
-    const displayNameMatch = sender.match(displayNamePattern);
-    
-    if (displayNameMatch) {
-        const displayName = displayNameMatch[1].trim();
-        const actualDomain = sender.split('@')[1];
-        
-        // Check if display name suggests different organization
-        const orgSuggestions = ['bank', 'paypal', 'amazon', 'microsoft', 'google'];
-        orgSuggestions.forEach(org => {
-            if (displayName.toLowerCase().includes(org) && !actualDomain.includes(org)) {
-                riskScore += 30;
-                warnings.push(`Display name suggests ${org} but sender domain doesn't match`);
-            }
-        });
-    }
-    
-    return {
-        sender: sender,
-        subject: subject,
-        riskScore: Math.min(riskScore, 100),
-        warnings: warnings,
-        features: features,
-        timestamp: new Date().toLocaleString()
-    };
+    return { risk, warnings, features };
 }
 
-// Website Feature Extraction (Features 31-36)
-function extractWebsiteFeatures(website, options) {
-    let riskScore = 0;
+// Features 2-5: Comprehensive URL Structure Analysis
+function analyzeURLStructure(normalizedUrl, urlObj) {
+    let risk = 0;
     let warnings = [];
-    let checks = [];
     let features = {};
     
-    try {
-        const urlObj = new URL(website.startsWith('http') ? website : 'https://' + website);
-        const domain = urlObj.hostname.toLowerCase();
-        
-        // Feature 31: SSL/TLS Security Analysis
-        if (options.checkSSL) {
-            if (urlObj.protocol !== 'https:') {
-                checks.push({
-                    name: 'SSL Certificate',
-                    status: 'fail',
-                    message: 'Website does not use HTTPS encryption'
-                });
-                riskScore += 35;
-                warnings.push('No HTTPS encryption detected');
-            } else {
-                checks.push({
-                    name: 'SSL Certificate',
-                    status: 'pass',
-                    message: 'Website uses HTTPS encryption'
-                });
-            }
-            
-            // Simulate additional SSL checks
-            const sslStrength = Math.random();
-            if (sslStrength < 0.1) {
-                checks.push({
-                    name: 'SSL Strength',
-                    status: 'fail',
-                    message: 'Weak SSL/TLS configuration detected'
-                });
-                riskScore += 25;
-                warnings.push('Weak SSL configuration');
-            } else if (sslStrength < 0.3) {
-                checks.push({
-                    name: 'SSL Strength',
-                    status: 'warning',
-                    message: 'SSL configuration could be stronger'
-                });
-                riskScore += 10;
-            } else {
-                checks.push({
-                    name: 'SSL Strength',
-                    status: 'pass',
-                    message: 'Strong SSL/TLS configuration'
-                });
-            }
-        }
-        
-        // Feature 32: Domain and WHOIS Analysis
-        if (options.checkDomain) {
-            // Simulate domain age check
-            const domainAge = Math.floor(Math.random() * 365 * 5); // 0-5 years
-            
-            if (domainAge < 30) {
-                checks.push({
-                    name: 'Domain Age',
-                    status: 'fail',
-                    message: `Very new domain (${domainAge} days old)`
-                });
-                riskScore += 40;
-                warnings.push('Domain registered very recently');
-            } else if (domainAge < 90) {
-                checks.push({
-                    name: 'Domain Age',
-                    status: 'warning',
-                    message: `Recent domain registration (${domainAge} days old)`
-                });
-                riskScore += 20;
-            } else {
-                checks.push({
-                    name: 'Domain Age',
-                    status: 'pass',
-                    message: `Established domain (${domainAge} days old)`
-                });
-            }
-            
-            // Simulate reputation check
-            const reputation = Math.floor(Math.random() * 100);
-            if (reputation < 30) {
-                checks.push({
-                    name: 'Domain Reputation',
-                    status: 'fail',
-                    message: 'Poor domain reputation score'
-                });
-                riskScore += 45;
-                warnings.push('Domain has poor reputation');
-            } else if (reputation < 60) {
-                checks.push({
-                    name: 'Domain Reputation',
-                    status: 'warning',
-                    message: 'Mixed domain reputation'
-                });
-                riskScore += 15;
-            } else {
-                checks.push({
-                    name: 'Domain Reputation',
-                    status: 'pass',
-                    message: 'Good domain reputation'
-                });
-            }
-        }
-        
-        // Feature 33: Content and Structure Analysis
-        if (options.checkContent) {
-            // Simulate content analysis
-            const contentRisk = Math.random();
-            
-            if (contentRisk < 0.05) {
-                checks.push({
-                    name: 'Content Analysis',
-                    status: 'fail',
-                    message: 'Suspicious content patterns detected'
-                });
-                riskScore += 50;
-                warnings.push('Website content shows phishing indicators');
-            } else if (contentRisk < 0.2) {
-                checks.push({
-                    name: 'Content Analysis',
-                    status: 'warning',
-                    message: 'Some content patterns require attention'
-                });
-                riskScore += 15;
-            } else {
-                checks.push({
-                    name: 'Content Analysis',
-                    status: 'pass',
-                    message: 'Content appears legitimate'
-                });
-            }
-            
-            // Simulate form security check
-            const hasInsecureForms = Math.random() < 0.1;
-            if (hasInsecureForms && urlObj.protocol !== 'https:') {
-                checks.push({
-                    name: 'Form Security',
-                    status: 'fail',
-                    message: 'Login forms without HTTPS detected'
-                });
-                riskScore += 40;
-                warnings.push('Insecure login forms detected');
-            } else {
-                checks.push({
-                    name: 'Form Security',
-                    status: 'pass',
-                    message: 'Forms use secure transmission'
-                });
-            }
-        }
-        
-        // Feature 34: Behavioral Analysis
-        if (options.checkBehavior) {
-            // Simulate behavioral checks
-            const behaviorRisk = Math.random();
-            
-            if (behaviorRisk < 0.1) {
-                checks.push({
-                    name: 'Behavioral Analysis',
-                    status: 'fail',
-                    message: 'Suspicious user interaction patterns'
-                });
-                riskScore += 35;
-                warnings.push('Suspicious behavioral patterns detected');
-            } else {
-                checks.push({
-                    name: 'Behavioral Analysis',
-                    status: 'pass',
-                    message: 'Normal user interaction patterns'
-                });
-            }
-            
-            // Redirect analysis
-            const hasRedirects = Math.random() < 0.3;
-            if (hasRedirects) {
-                const redirectCount = Math.floor(Math.random() * 5) + 1;
-                if (redirectCount > 3) {
-                    checks.push({
-                        name: 'Redirect Analysis',
-                        status: 'warning',
-                        message: `Multiple redirects detected (${redirectCount})`
-                    });
-                    riskScore += 20;
-                    warnings.push('Excessive redirects detected');
-                } else {
-                    checks.push({
-                        name: 'Redirect Analysis',
-                        status: 'pass',
-                        message: `Normal redirect count (${redirectCount})`
-                    });
-                }
-            } else {
-                checks.push({
-                    name: 'Redirect Analysis',
-                    status: 'pass',
-                    message: 'No suspicious redirects detected'
-                });
-            }
-        }
-        
-        // Feature 35: SEO and Marketing Pattern Analysis
-        if (options.checkSEO) {
-            // Simulate SEO analysis
-            const seoRisk = Math.random();
-            
-            if (seoRisk < 0.15) {
-                checks.push({
-                    name: 'SEO Analysis',
-                    status: 'warning',
-                    message: 'Unusual SEO patterns detected'
-                });
-                riskScore += 15;
-                warnings.push('Suspicious SEO patterns');
-            } else {
-                checks.push({
-                    name: 'SEO Analysis',
-                    status: 'pass',
-                    message: 'Normal SEO patterns'
-                });
-            }
-            
-            // Check for keyword stuffing indicators
-            const keywordStuffing = Math.random() < 0.1;
-            if (keywordStuffing) {
-                checks.push({
-                    name: 'Keyword Analysis',
-                    status: 'warning',
-                    message: 'Potential keyword stuffing detected'
-                });
-                riskScore += 10;
-            } else {
-                checks.push({
-                    name: 'Keyword Analysis',
-                    status: 'pass',
-                    message: 'Normal keyword usage'
-                });
-            }
-        }
-        
-        // Feature 36: Social Engineering Indicators
-        if (options.checkSocial) {
-            // Simulate social engineering detection
-            const socialRisk = Math.random();
-            
-            if (socialRisk < 0.08) {
-                checks.push({
-                    name: 'Social Engineering',
-                    status: 'fail',
-                    message: 'Strong social engineering indicators detected'
-                });
-                riskScore += 45;
-                warnings.push('Website designed to manipulate users');
-            } else if (socialRisk < 0.25) {
-                checks.push({
-                    name: 'Social Engineering',
-                    status: 'warning',
-                    message: 'Mild social engineering indicators'
-                });
-                riskScore += 15;
-            } else {
-                checks.push({
-                    name: 'Social Engineering',
-                    status: 'pass',
-                    message: 'No social engineering indicators'
-                });
-            }
-            
-            // Check for urgency indicators
-            const urgencyCheck = Math.random() < 0.2;
-            if (urgencyCheck) {
-                checks.push({
-                    name: 'Urgency Tactics',
-                    status: 'warning',
-                    message: 'Time pressure tactics detected'
-                });
-                riskScore += 20;
-                warnings.push('Website uses urgency manipulation');
-            } else {
-                checks.push({
-                    name: 'Urgency Tactics',
-                    status: 'pass',
-                    message: 'No urgency manipulation detected'
-                });
-            }
-        }
-        
-        // Check for known malicious patterns
-        const knownBadDomains = ['malicious-site.com', 'phishing-test.net', 'scam-example.org'];
-        if (knownBadDomains.includes(domain)) {
-            riskScore = 100;
-            warnings.push('CRITICAL: Domain found in malicious site database');
-            checks.push({
-                name: 'Blacklist Check',
-                status: 'fail',
-                message: 'Domain found in security blacklist'
-            });
-        } else {
-            checks.push({
-                name: 'Blacklist Check',
-                status: 'pass',
-                message: 'Domain not found in blacklists'
-            });
-        }
-        
-    } catch (error) {
-        riskScore = 95;
-        warnings.push('Invalid website URL or analysis error');
-        checks.push({
-            name: 'URL Validation',
-            status: 'fail',
-            message: 'Invalid or malformed URL'
-        });
+    // Advanced URL Length Analysis
+    const urlLength = normalizedUrl.length;
+    if (urlLength > 200) {
+        risk += 30;
+        warnings.push('Extremely long URL detected (>200 chars) - possible obfuscation attempt');
+        features.urlLength = 'extreme';
+    } else if (urlLength > 150) {
+        risk += 20;
+        warnings.push('Very long URL detected - potential hiding of malicious intent');
+        features.urlLength = 'very_long';
+    } else if (urlLength > 100) {
+        risk += 10;
+        features.urlLength = 'long';
+    } else {
+        features.urlLength = 'normal';
     }
     
-    return {
-        website: website,
-        riskScore: Math.min(riskScore, 100),
-        warnings: warnings,
-        checks: checks,
-        features: features,
-        timestamp: new Date().toLocaleString()
-    };
+    // @ Symbol Analysis (URL Redirection)
+    if (normalizedUrl.includes('@')) {
+        risk += 40;
+        warnings.push('Contains @ symbol - commonly used in phishing for URL redirection attacks');
+        features.hasAtSymbol = true;
+    }
+    
+    // Double Slash Pattern Detection
+    const doubleSlashCount = (normalizedUrl.match(/\/\//g) || []).length;
+    if (doubleSlashCount > 1) {
+        risk += 35;
+        warnings.push('Multiple // sequences detected - advanced redirection technique');
+        features.multipleSlashes = true;
+        features.doubleSlashCount = doubleSlashCount;
+    }
+    
+    // Path Depth Analysis
+    const pathSegments = urlObj.pathname.split('/').filter(segment => segment.length > 0);
+    if (pathSegments.length > 10) {
+        risk += 20;
+        warnings.push('Excessive path depth detected - possible directory traversal or obfuscation');
+        features.excessivePathDepth = true;
+    }
+    features.pathDepth = pathSegments.length;
+    
+    // File Extension Analysis
+    const pathExtension = urlObj.pathname.split('.').pop().toLowerCase();
+    const suspiciousExtensions = ['exe', 'scr', 'bat', 'com', 'pif', 'zip', 'rar'];
+    if (suspiciousExtensions.includes(pathExtension)) {
+        risk += 30;
+        warnings.push(`Suspicious file extension detected: .${pathExtension}`);
+        features.suspiciousExtension = pathExtension;
+    }
+    
+    return { risk, warnings, features };
+}
+
+// Features 6-10: Advanced Domain Analysis
+function analyzeDomainFeatures(domain, urlObj) {
+    let risk = 0;
+    let warnings = [];
+    let features = {};
+    
+    // Subdomain Analysis
+    const subdomains = domain.split('.');
+    const subdomainCount = subdomains.length - 2; // Subtract main domain and TLD
+    
+    if (subdomainCount > 4) {
+        risk += 30;
+        warnings.push('Excessive subdomain levels detected - possible subdomain abuse');
+        features.excessiveSubdomains = true;
+    } else if (subdomainCount > 2) {
+        risk += 15;
+        features.excessiveSubdomains = false;
+    }
+    features.subdomainCount = Math.max(0, subdomainCount);
+    
+    // Advanced Hyphen Analysis
+    const hyphenCount = (domain.match(/-/g) || []).length;
+    const domainLength = domain.length;
+    const hyphenRatio = hyphenCount / domainLength;
+    
+    if (hyphenCount > 5 || hyphenRatio > 0.3) {
+        risk += 25;
+        warnings.push('Excessive hyphens in domain - characteristic of phishing domains');
+        features.excessiveHyphens = true;
+    }
+    features.hyphenCount = hyphenCount;
+    features.hyphenRatio = hyphenRatio;
+    
+    // Domain Composition Analysis
+    const numericChars = (domain.match(/\d/g) || []).length;
+    const numericRatio = numericChars / domainLength;
+    
+    if (numericRatio > 0.4) {
+        risk += 20;
+        warnings.push('High numeric content in domain name - suspicious pattern');
+        features.highNumericContent = true;
+    }
+    features.numericRatio = numericRatio;
+    
+    // Character Repetition Analysis
+    const charFrequency = {};
+    for (const char of domain) {
+        charFrequency[char] = (charFrequency[char] || 0) + 1;
+    }
+    
+    const maxRepetition = Math.max(...Object.values(charFrequency));
+    if (maxRepetition > domainLength * 0.3) {
+        risk += 15;
+        warnings.push('Excessive character repetition in domain');
+        features.excessiveRepetition = true;
+    }
+    
+    // TLD Analysis
+    const tld = domain.split('.').pop();
+    const suspiciousTLDs = ['tk', 'ml', 'ga', 'cf', 'click', 'download', 'zip', 'top', 'bid', 'loan'];
+    if (suspiciousTLDs.includes(tld)) {
+        risk += 25;
+        warnings.push(`Suspicious top-level domain: .${tld}`);
+        features.suspiciousTLD = tld;
+    }
+    
+    return { risk, warnings, features };
+}
+
+// Features 11-15: Content and Parameter Analysis
+function analyzeURLContent(urlObj, normalizedUrl) {
+    let risk = 0;
+    let warnings = [];
+    let features = {};
+    
+    // Advanced Parameter Analysis
+    const paramCount = Array.from(urlObj.searchParams).length;
+    if (paramCount > 15) {
+        risk += 25;
+        warnings.push('Excessive URL parameters detected - possible parameter pollution');
+        features.excessiveParams = true;
+    } else if (paramCount > 8) {
+        risk += 10;
+        features.excessiveParams = false;
+    }
+    features.parameterCount = paramCount;
+    
+    // Suspicious Parameter Names
+    const suspiciousParamNames = ['token', 'auth', 'login', 'pass', 'user', 'account', 'verify', 'confirm'];
+    let suspiciousParamCount = 0;
+    
+    for (const [paramName] of urlObj.searchParams) {
+        if (suspiciousParamNames.some(suspicious => paramName.toLowerCase().includes(suspicious))) {
+            suspiciousParamCount++;
+            risk += 15;
+            warnings.push(`Suspicious parameter detected: ${paramName}`);
+        }
+    }
+    features.suspiciousParamCount = suspiciousParamCount;
+    
+    // URL Encoding Analysis
+    const encodingPattern = /%[0-9A-Fa-f]{2}/g;
+    const encodingCount = (normalizedUrl.match(encodingPattern) || []).length;
+    const encodingRatio = encodingCount / normalizedUrl.length;
+    
+    if (encodingCount > 10 || encodingRatio > 0.1) {
+        risk += 20;
+        warnings.push('Excessive URL encoding detected - possible obfuscation technique');
+        features.excessiveEncoding = true;
+    }
+    features.encodingCount = encodingCount;
+    features.encodingRatio = encodingRatio;
+    
+    // Base64 Detection in Parameters
+    for (const [paramName, paramValue] of urlObj.searchParams) {
+        if (isBase64Encoded(paramValue) && paramValue.length > 20) {
+            risk += 18;
+            warnings.push(`Base64 encoded parameter detected: ${paramName}`);
+            features.base64InParams = true;
+        }
+    }
+    
+    // Fragment Analysis
+    if (urlObj.hash && urlObj.hash.length > 50) {
+        risk += 12;
+        warnings.push('Long URL fragment detected - possible data hiding');
+        features.longFragment = true;
+    }
+    
+    return { risk, warnings, features };
+}
+
+// Features 16-20: Security Pattern Recognition
+function analyzeSecurityPatterns(normalizedUrl, domain) {
+    let risk = 0;
+    let warnings = [];
+    let features = {};
+    
+    // Advanced Keyword Analysis
+    const suspiciousKeywords = [
+        'secure', 'verify', 'urgent', 'suspended', 'limited', 'confirm',
+        'login', 'signin', 'account', 'bank', 'paypal', 'amazon', 'update',
+        'billing', 'payment', 'security', 'alert', 'warning', 'locked',
+        'expired', 'validation', 'authentication', 'credential', 'identity'
+    ];
+    
+    let keywordCount = 0;
+    const detectedKeywords = [];
+    
+    suspiciousKeywords.forEach(keyword => {
+        if (normalizedUrl.toLowerCase().includes(keyword)) {
+            keywordCount++;
+            detectedKeywords.push(keyword);
+            risk += 12;
+        }
+    });
+    
+    if (keywordCount > 3) {
+        warnings.push(`Multiple suspicious keywords detected: ${detectedKeywords.slice(0, 3).join(', ')}${detectedKeywords.length > 3 ? '...' : ''}`);
+    } else if (keywordCount > 0) {
+        warnings.push(...detectedKeywords.map(kw => `Suspicious keyword detected: "${kw}"`));
+    }
+    
+    features.suspiciousKeywords = keywordCount;
+    features.detectedKeywords = detectedKeywords;
+    
+    // IP Address Detection (Enhanced)
+    const ipv4Pattern = /\b(?:[0-9]{1,3}\.){3}[0-9]{1,3}\b/;
+    const ipv6Pattern = /\b(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}\b/;
+    
+    if (ipv4Pattern.test(domain) || ipv6Pattern.test(domain)) {
+        risk += 40;
+        warnings.push('IP address used instead of domain name - highly suspicious');
+        features.usesIPAddress = true;
+    }
+    
+    // Port Analysis
+    if (normalizedUrl.includes(':') && !normalizedUrl.match(/:\/\//) && !normalizedUrl.match(/:443/) && !normalizedUrl.match(/:80/)) {
+        const portMatch = normalizedUrl.match(/:(\d+)/);
+        if (portMatch) {
+            const port = portMatch[1];
+            risk += 20;
+            warnings.push(`Non-standard port detected: ${port}`);
+            features.nonStandardPort = port;
+        }
+    }
+    
+    // Homograph Attack Detection
+    const homographPatterns = [
+        /[а-яё]/gi, // Cyrillic
+        /[αβγδεζηθικλμνξοπρστυφχψω]/gi, // Greek
+        /[àáâãäåæçèéêëìíîïðñòóôõöøùúûüýþÿ]/gi // Extended Latin
+    ];
+    
+    homographPatterns.forEach((pattern, index) => {
+        if (pattern.test(domain)) {
+            risk += 35;
+            warnings.push('Domain contains potential homograph characters (lookalike attack)');
+            features.homographDetected = true;
+            return;
+        }
+    });
+    
+    // URL Shortener Detection (Enhanced)
+    const urlShorteners = [
+        'bit.ly', 'tinyurl.com', 't.co', 'goo.gl', 'ow.ly', 'buff.ly',
+        'short.link', 'tiny.cc', 'is.gd', 'v.gd', 'cutt.ly', 'rebrand.ly',
+        'clickmeter.com', 'clicky.me', 'bc.vc'
+    ];
+    
+    const isShortener = urlShorteners.some(shortener => domain.includes(shortener));
+    if (isShortener) {
+        risk += 30;
+        warnings.push('URL shortening service detected - destination hidden');
+        features.isShortener = true;
+    }
+    
+    return { risk, warnings, features };
+}
+
+// Features 21-25: Behavioral Analysis
+function analyzeBehavioralPatterns(normalizedUrl, domain, urlObj) {
+    let risk = 0;
+    let warnings = [];
+    let features = {};
+    
+    // Typosquatting Detection (Enhanced)
+    const legitimateDomains = [
+        'google.com', 'microsoft.com', 'apple.com', 'facebook.com', 'meta.com',
+        'twitter.com', 'x.com', 'github.com', 'amazon.com', 'paypal.com',
+        'ebay.com', 'linkedin.com', 'netflix.com', 'spotify.com', 'instagram.com',
+        'youtube.com', 'gmail.com', 'outlook.com', 'yahoo.com', 'dropbox.com'
+    ];
+    
+    legitimateDomains.forEach(legitDomain => {
+        const similarity = calculateStringSimilarity(domain, legitDomain);
+        if (similarity > 0.7 && similarity < 0.95 && domain !== legitDomain) {
+            risk += 45;
+            warnings.push(`Possible typosquatting of ${legitDomain} (${Math.round(similarity * 100)}% similar)`);
+            features.possibleTyposquatting = {
+                target: legitDomain,
+                similarity: similarity
+            };
+        }
+    });
+    
+    // Brand Impersonation Detection
+    const brandKeywords = [
+        'microsoft', 'google', 'apple', 'amazon', 'paypal', 'ebay', 'facebook',
+        'bank', 'secure', 'login', 'account', 'verify', 'update', 'office365',
+        'gmail', 'outlook', 'netflix', 'spotify', 'instagram', 'youtube'
+    ];
+    
+    brandKeywords.forEach(brand => {
+        if (domain.includes(brand) && !domain.startsWith(brand + '.') && !domain.endsWith('.' + brand + '.com')) {
+            risk += 35;
+            warnings.push(`Potential brand impersonation detected: ${brand}`);
+            features.brandImpersonation = brand;
+        }
+    });
+    
+    // Suspicious Pattern Combinations
+    const suspiciousPatterns = [
+        /secure.*login/i,
+        /verify.*account/i,
+        /update.*payment/i,
+        /confirm.*identity/i,
+        /suspended.*account/i
+    ];
+    
+    suspiciousPatterns.forEach(pattern => {
+        if (pattern.test(normalizedUrl)) {
+            risk += 25;
+            warnings.push('Suspicious phrase pattern detected in URL');
+            features.suspiciousPattern = true;
+        }
+    });
+    
+    // Domain Age Simulation (Client-side heuristics)
+    const domainAgeHeuristic = analyzeDomainAgeHeuristics(domain);
+    if (domainAgeHeuristic.suspicious) {
+        risk += domainAgeHeuristic.risk;
+        warnings.push(...domainAgeHeuristic.warnings);
+        features.domainAgeHeuristic = domainAgeHeuristic;
+    }
+    
+    // Consonant-Vowel Ratio Analysis
+    const vowels = (domain.match(/[aeiou]/gi) || []).length;
+    const consonants = (domain.match(/[bcdfghjklmnpqrstvwxyz]/gi) || []).length;
+    const cvRatio = consonants / (vowels || 1);
+    
+    if (cvRatio > 5) {
+        risk += 15;
+        warnings.push('Unusual consonant-vowel ratio in domain (possible generated domain)');
+        features.unusualCVRatio = true;
+    }
+    features.consonantVowelRatio = cvRatio;
+    
+    return { risk, warnings, features };
+}
+
+// Features 26-30: Advanced Threat Intelligence
+function analyzeThreatIntelligence(normalizedUrl, domain) {
+    let risk = 0;
+    let warnings = [];
+    let features = {};
+    
+    // Known Malicious Pattern Detection
+    const maliciousPatterns = [
+        /[0-9]+\.[0-9]+\.[0-9]+\.[0-9]+/,  // IP addresses
+        /bit\.ly|tinyurl|t\.co/,            // URL shorteners
+        /[a-z0-9]{20,}/,                    // Long random strings
+        /[a-zA-Z0-9]{8}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{4}-[a-zA-Z0-9]{12}/, // UUID patterns
+        /data:image|javascript:|vbscript:/   // Dangerous protocols
+    ];
+    
+    maliciousPatterns.forEach((pattern, index) => {
+        if (pattern.test(normalizedUrl)) {
+            risk += [40, 30, 15, 20, 50][index];
+            warnings.push(`Malicious pattern detected in URL structure`);
+            features.maliciousPattern = true;
+        }
+    });
+    
+    // Phishing Database Simulation
+    const knownPhishingDomains = [
+        'phishing-example.com', 'fake-bank.net', 'scam-site.org',
+        'malicious-site.tk', 'phish-test.ml', 'dangerous-link.ga'
+    ];
+    
+    if (knownPhishingDomains.some(phishDomain => domain.includes(phishDomain))) {
+        risk = 100;
+        warnings.push('CRITICAL: Domain found in known phishing database');
+        features.knownPhishingDomain = true;
+    }
+    
+    // Suspicious TLD Combinations
+    const suspiciousTLDCombos = ['.tk', '.ml', '.ga', '.cf'];
+    const tld = '.' + domain.split('.').pop();
+    
+    if (suspiciousTLDCombos.includes(tld) && domain.split('.').length > 2) {
+        risk += 20;
+        warnings.push(`Suspicious TLD with subdomain structure: ${tld}`);
+        features.suspiciousTLDPattern = true;
+    }
+    
+    // Dynamic DNS Detection
+    const dynamicDNSProviders = ['dyndns', 'no-ip', 'freedns', 'changeip'];
+    if (dynamicDNSProviders.some(provider => domain.includes(provider))) {
+        risk += 25;
+        warnings.push('Dynamic DNS provider detected - commonly used by attackers');
+        features.dynamicDNS = true;
+    }
+    
+    // Suspicious Character Sequences
+    const suspiciousSequences = [
+        /(.)\1{3,}/,  // Character repetition (aaaa, bbbb, etc.)
+        /[0O]{2,}/,   // Zeros and O's together
+        /[Il1]{2,}/,  // I, l, and 1 together
+        /[a-z][A-Z][a-z][A-Z]/ // Alternating case
+    ];
+    
+    suspiciousSequences.forEach(sequence => {
+        if (sequence.test(domain)) {
+            risk += 10;
+            warnings.push('Suspicious character sequence in domain');
+            features.suspiciousCharSequence = true;
+        }
+    });
+    
+    return { risk, warnings, features };
+}
+
+// Features 31-36: Machine Learning Inspired Analysis
+function performMLInspiredAnalysis(normalizedUrl, domain, existingFeatures) {
+    let risk = 0;
+    let warnings = [];
+    let features = {};
+    
+    // Entropy Analysis
+    const urlEntropy = calculateEntropy(normalizedUrl);
+    const domainEntropy = calculateEntropy(domain);
+    
+    if (urlEntropy > 4.5 || domainEntropy > 3.5) {
+        risk += 20;
+        warnings.push('High entropy detected - possible randomly generated URL');
+        features.highEntropy = true;
+        features.urlEntropy = urlEntropy;
+        features.domainEntropy = domainEntropy;
+    }
+    
+    // Feature Correlation Analysis
+    const correlationRisk = analyzeFeatureCorrelations(existingFeatures);
+    risk += correlationRisk.risk;
+    warnings.push(...correlationRisk.warnings);
+    features.correlationAnalysis = correlationRisk.analysis;
+    
+    // Lexical Analysis
+    const lexicalScore = performLexicalAnalysis(domain);
+    if (lexicalScore.suspicious) {
+        risk += lexicalScore.risk;
+        warnings.push(...lexicalScore.warnings);
+        features.lexicalAnalysis = lexicalScore;
+    }
+    
+    // Behavioral Clustering
+    const clusterAnalysis = performBehavioralClustering(normalizedUrl, domain, existingFeatures);
+    if (clusterAnalysis.suspicious) {
+        risk += clusterAnalysis.risk;
+        warnings.push(...clusterAnalysis.warnings);
+        features.behavioralCluster = clusterAnalysis.cluster;
+    }
+    
+    // Advanced Pattern Recognition
+    const patternAnalysis = performAdvancedPatternRecognition(normalizedUrl);
+    risk += patternAnalysis.risk;
+    warnings.push(...patternAnalysis.warnings);
+    features.advancedPatterns = patternAnalysis.patterns;
+    
+    // Anomaly Detection
+    const anomalyScore = detectAnomalies(normalizedUrl, domain, existingFeatures);
+    if (anomalyScore.anomalous) {
+        risk += anomalyScore.risk;
+        warnings.push('Anomalous URL characteristics detected');
+        features.anomalyDetection = anomalyScore;
+    }
+    
+    return { risk, warnings, features };
+}
+
+// Helper Functions
+
+function calculateStringSimilarity(str1, str2) {
+    const len1 = str1.length;
+    const len2 = str2.length;
+    const matrix = Array(len2 + 1).fill(null).map(() => Array(len1 + 1).fill(null));
+    
+    for (let i = 0; i <= len1; i++) matrix[0][i] = i;
+    for (let j = 0; j <= len2; j++) matrix[j][0] = j;
+    
+    for (let j = 1; j <= len2; j++) {
+        for (let i = 1; i <= len1; i++) {
+            const indicator = str1[i - 1] === str2[j - 1] ? 0 : 1;
+            matrix[j][i] = Math.min(
+                matrix[j][i - 1] + 1,
+                matrix[j - 1][i] + 1,
+                matrix[j - 1][i - 1] + indicator
+            );
+        }
+    }
+    
+    const distance = matrix[len2][len1];
+    return 1 - distance / Math.max(len1, len2);
+}
+
+function calculateEntropy(str) {
+    const len = str.length;
+    const frequencies = {};
+    
+    for (let i = 0; i < len; i++) {
+        frequencies[str[i]] = (frequencies[str[i]] || 0) + 1;
+    }
+    
+    let entropy = 0;
+    for (const frequency of Object.values(frequencies)) {
+        const p = frequency / len;
+        entropy -= p * Math.log2(p);
+    }
+    
+    return entropy;
+}
+
+function isBase64Encoded(str) {
+    try {
+        return btoa(atob(str)) === str;
+    } catch (err) {
+        return false;
+    }
+}
+
+function analyzeDomainAgeHeuristics(domain) {
+    // Simple heuristics to guess domain age based on patterns
+    let suspicious = false;
+    let risk = 0;
+    let warnings = [];
+    
+    // Very short domains (less than 4 chars) are often newer
+    if (domain.split('.')[0].length < 4) {
+        suspicious = true;
+        risk += 15;
+        warnings.push('Very short domain name - often indicates recent registration');
+    }
+    
+    // Domains with numbers at the end might be variants of existing domains
+    if (/\d+$/.test(domain.split('.')[0])) {
+        suspicious = true;
+        risk += 10;
+        warnings.push('Domain ends with numbers - possible variant of existing domain');
+    }
+    
+    return { suspicious, risk, warnings };
+}
+
+function analyzeFeatureCorrelations(features) {
+    let risk = 0;
+    let warnings = [];
+    let analysis = {};
+    
+    // Check for dangerous feature combinations
+    const dangerousCombos = [
+        { features: ['usesIPAddress', 'nonStandardPort'], risk: 30, warning: 'IP address with non-standard port - highly suspicious' },
+        { features: ['isShortener', 'suspiciousKeywords'], risk: 25, warning: 'URL shortener with suspicious keywords' },
+        { features: ['excessiveHyphens', 'suspiciousTLD'], risk: 20, warning: 'Excessive hyphens with suspicious TLD' },
+        { features: ['homographDetected', 'brandImpersonation'], risk: 35, warning: 'Homograph attack combined with brand impersonation' }
+    ];
+    
+    dangerousCombos.forEach(combo => {
+        if (combo.features.every(feature => features[feature])) {
+            risk += combo.risk;
+            warnings.push(combo.warning);
+            analysis[combo.features.join('_')] = true;
+        }
+    });
+    
+    return { risk, warnings, analysis };
+}
+
+function performLexicalAnalysis(domain) {
+    let suspicious = false;
+    let risk = 0;
+    let warnings = [];
+    
+    // Dictionary word analysis
+    const commonWords = ['secure', 'login', 'bank', 'pay', 'account', 'verify', 'update'];
+    const domainWords = domain.split(/[.-]/).filter(part => part.length > 2);
+    
+    let suspiciousWordCount = 0;
+    domainWords.forEach(word => {
+        if (commonWords.includes(word.toLowerCase())) {
+            suspiciousWordCount++;
+        }
+    });
+    
+    if (suspiciousWordCount > 1) {
+        suspicious = true;
+        risk += 20;
+        warnings.push('Multiple suspicious words in domain structure');
+    }
+    
+    // Random character analysis
+    const randomnessScore = calculateRandomnessScore(domain);
+    if (randomnessScore > 0.7) {
+        suspicious = true;
+        risk += 15;
+        warnings.push('Domain appears to contain random character sequences');
+    }
+    
+    return { suspicious, risk, warnings, randomnessScore };
+}
+
+function calculateRandomnessScore(str) {
+    // Simple randomness heuristic based on character transitions
+    let transitions = 0;
+    let totalTransitions = 0;
+    
+    for (let i = 0; i < str.length - 1; i++) {
+        const char1 = str[i];
+        const char2 = str[i + 1];
+        
+        totalTransitions++;
+        
+        // Check for unusual transitions
+        if (/[a-z]/.test(char1) && /[0-9]/.test(char2)) transitions++;
+        if (/[0-9]/.test(char1) && /[a-z]/.test(char2)) transitions++;
+        if (Math.abs(char1.charCodeAt(0) - char2.charCodeAt(0)) > 10) transitions++;
+    }
+    
+    return totalTransitions > 0 ? transitions / totalTransitions : 0;
+}
+
+function performBehavioralClustering(url, domain, features) {
+    // Simulate clustering based on behavioral patterns
+    let suspicious = false;
+    let risk = 0;
+    let warnings = [];
+    let cluster = 'normal';
+    
+    // Phishing cluster indicators
+    const phishingIndicators = [
+        features.suspiciousKeywords > 2,
+        features.excessiveHyphens,
+        features.usesIPAddress,
+        features.brandImpersonation,
+        features.homographDetected
+    ];
+    
+    const phishingScore = phishingIndicators.filter(Boolean).length;
+    
+    if (phishingScore >= 3) {
+        suspicious = true;
+        risk = 30;
+        warnings.push('URL matches phishing behavior cluster');
+        cluster = 'phishing';
+    } else if (phishingScore >= 2) {
+        risk = 15;
+        cluster = 'suspicious';
+    }
+    
+    return { suspicious, risk, warnings, cluster };
+}
+
+function performAdvancedPatternRecognition(url) {
+    let risk = 0;
+    let warnings = [];
+    let patterns = [];
+    
+    // Advanced regex patterns for sophisticated attacks
+    const advancedPatterns = [
+        { pattern: /[a-z]+[0-9]+[a-z]+\.(tk|ml|ga|cf)/, risk: 25, name: 'suspicious_alternating_pattern' },
+        { pattern: /[a-z]+-[a-z]+-[a-z]+\./, risk: 20, name: 'triple_hyphen_pattern' },
+        { pattern: /[a-z]{1,3}[0-9]{1,3}[a-z]{1,3}/, risk: 15, name: 'char_num_alternation' },
+        { pattern: /www\d+\./, risk: 18, name: 'www_with_numbers' },
+        { pattern: /secure[^a-z]|[^a-z]secure/, risk: 22, name: 'secure_keyword_misuse' }
+    ];
+    
+    advancedPatterns.forEach(({ pattern, risk: patternRisk, name }) => {
+        if (pattern.test(url.toLowerCase())) {
+            risk += patternRisk;
+            patterns.push(name);
+            warnings.push(`Advanced suspicious pattern detected: ${name.replace(/_/g, ' ')}`);
+        }
+    });
+    
+    return { risk, warnings, patterns };
+}
+
+function detectAnomalies(url, domain, features) {
+    let anomalous = false;
+    let risk = 0;
+    let anomalies = [];
+    
+    // Statistical anomaly detection based on feature combinations
+    const featureVector = [
+        features.urlLength === 'extreme' ? 1 : 0,
+        features.suspiciousKeywords || 0,
+        features.hyphenCount || 0,
+        features.subdomainCount || 0,
+        features.parameterCount || 0
+    ];
+    
+    const anomalyScore = featureVector.reduce((sum, val) => sum + val, 0);
+    
+    if (anomalyScore > 5) {
+        anomalous = true;
+        risk = 25;
+        anomalies.push('multiple_suspicious_features');
+    }
+    
+    // Domain length anomaly
+    if (domain.length > 50 || domain.length < 4) {
+        anomalous = true;
+        risk += 10;
+        anomalies.push('unusual_domain_length');
+    }
+    
+    return { anomalous, risk, anomalies, score: anomalyScore };
+}
+
+function calculateConfidenceScore(features, warningCount) {
+    // Calculate confidence based on feature completeness and consistency
+    let confidence = 100;
+    
+    // Reduce confidence for missing or incomplete analysis
+    if (!features.httpsProtocol) confidence -= 10;
+    if (warningCount === 0 && Object.keys(features).length < 10) confidence -= 15;
+    if (features.parseError) confidence -= 30;
+    
+    // Increase confidence for comprehensive analysis
+    if (Object.keys(features).length > 20) confidence += 5;
+    if (features.correlationAnalysis) confidence += 5;
+    
+    return Math.max(0, Math.min(100, confidence));
+}
+
+function applyWeightedScoring(baseScore, features) {
+    let weightedScore = baseScore;
+    
+    // Apply weights based on feature criticality
+    if (features.knownPhishingDomain) return 100;
+    if (features.usesIPAddress) weightedScore *= 1.2;
+    if (features.homographDetected) weightedScore *= 1.15;
+    if (features.brandImpersonation) weightedScore *= 1.1;
+    
+    // Reduce score for positive indicators
+    if (features.httpsProtocol && !features.suspiciousKeywords) {
+        weightedScore *= 0.9;
+    }
+    
+    return Math.min(100, weightedScore);
+}
+
+function determineRiskLevel(score) {
+    if (score >= 80) return 'Critical';
+    if (score >= 60) return 'High';
+    if (score >= 30) return 'Medium';
+    return 'Low';
+}
+
+// Legacy function for backward compatibility
+function extractURLFeatures(url) {
+    return extractAdvancedURLFeatures(url);
 }
