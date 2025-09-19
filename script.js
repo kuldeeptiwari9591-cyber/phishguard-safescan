@@ -370,23 +370,8 @@ function initializeApp() {
 
 // Setup Event Listeners
 function setupEventListeners() {
-    // URL Analysis Form
-    const urlForm = document.getElementById('urlForm');
-    if (urlForm) {
-        urlForm.addEventListener('submit', handleURLSubmit);
-    }
-
-    // Quiz functionality
-    const startQuizBtn = document.getElementById('startQuiz');
-    if (startQuizBtn) {
-        startQuizBtn.addEventListener('click', startQuiz);
-    }
-
-    // Mobile menu toggle
-    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
-    if (mobileMenuBtn) {
-        mobileMenuBtn.addEventListener('click', toggleMobileMenu);
-    }
+    // Initialize quiz immediately
+    initializeQuiz();
 
     // Keyboard shortcuts
     document.addEventListener('keydown', handleKeyboardShortcuts);
@@ -395,18 +380,16 @@ function setupEventListeners() {
     window.addEventListener('scroll', handleScrollEffects);
 }
 
-// Handle URL Form Submission
-async function handleURLSubmit(e) {
-    e.preventDefault();
-    
+// URL Analysis Function (called from HTML button)
+async function analyzeURL() {
     if (isAnalyzing) {
         showToast('Analysis already in progress', 'warning');
         return;
     }
 
     const urlInput = document.getElementById('urlInput').value.trim();
-    const resultsContainer = document.getElementById('results');
-    const loadingIndicator = document.getElementById('loadingIndicator');
+    const resultsContainer = document.getElementById('urlResults');
+    const loadingOverlay = document.getElementById('loadingOverlay');
 
     if (!urlInput) {
         showToast('Please enter a URL to analyze', 'error');
@@ -422,13 +405,13 @@ async function handleURLSubmit(e) {
         isAnalyzing = true;
         
         // Show loading state
-        loadingIndicator.classList.remove('hidden');
+        loadingOverlay.classList.remove('hidden');
         resultsContainer.classList.add('hidden');
         
         // Update button state
-        const analyzeBtn = document.querySelector('button[type="submit"]');
-        const originalText = analyzeBtn.textContent;
-        analyzeBtn.textContent = 'Analyzing...';
+        const analyzeBtn = document.querySelector('.analyze-btn');
+        const originalText = analyzeBtn.innerHTML;
+        analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Analyzing...';
         analyzeBtn.disabled = true;
 
         // Set timeout for loading indicator
@@ -454,8 +437,8 @@ async function handleURLSubmit(e) {
         }
 
         // Hide loading and show results
-        loadingIndicator.classList.add('hidden');
-        displayURLResults(combinedResults);
+        loadingOverlay.classList.add('hidden');
+        displayURLResults(combinedResults, urlInput);
         resultsContainer.classList.remove('hidden');
         
         // Add to history
@@ -1055,6 +1038,235 @@ function handleScrollEffects() {
         } else {
             header.classList.remove('scrolled');
         }
+    }
+}
+
+// Additional functions for URL analysis and history
+async function performServerAnalysis(url) {
+    try {
+        const response = await fetch('/api/analyze-url', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ url: url })
+        });
+        
+        if (!response.ok) {
+            throw new Error(`Server analysis failed: ${response.status}`);
+        }
+        
+        return await response.json();
+    } catch (error) {
+        console.error('Server analysis error:', error);
+        return {
+            risk_score: 0,
+            warnings: ['Server analysis unavailable'],
+            features: {}
+        };
+    }
+}
+
+function combineAnalysisResults(clientResults, serverResults) {
+    return {
+        url: serverResults.url || clientResults.url,
+        risk_score: Math.max(clientResults.risk_score || 0, serverResults.risk_score || 0),
+        risk_level: serverResults.risk_level || 'Low',
+        warnings: [...(clientResults.warnings || []), ...(serverResults.warnings || [])],
+        features: { ...(clientResults.features || {}), ...(serverResults.features || {}) },
+        timestamp: new Date().toISOString()
+    };
+}
+
+function displayURLResults(results, url) {
+    const resultsContainer = document.getElementById('urlResults');
+    if (!resultsContainer) return;
+
+    const riskColor = getRiskColor(results.risk_level);
+    const riskIcon = getRiskIcon(results.risk_level);
+    
+    resultsContainer.innerHTML = `
+        <div class="analysis-results">
+            <div class="result-header">
+                <div class="result-icon ${riskColor}">
+                    <i class="fas ${riskIcon}"></i>
+                </div>
+                <div class="result-info">
+                    <h4>Analysis Complete</h4>
+                    <p class="analyzed-url">${url}</p>
+                </div>
+                <div class="risk-score">
+                    <span class="score-label">Risk Score</span>
+                    <span class="score-value ${riskColor}">${results.risk_score}/100</span>
+                </div>
+            </div>
+            
+            <div class="risk-level-indicator ${riskColor}">
+                <i class="fas ${riskIcon}"></i>
+                <span>Risk Level: ${results.risk_level}</span>
+            </div>
+            
+            ${results.warnings && results.warnings.length > 0 ? `
+                <div class="warnings-section">
+                    <h5><i class="fas fa-exclamation-triangle"></i> Security Warnings</h5>
+                    <ul class="warnings-list">
+                        ${results.warnings.map(warning => `<li>${warning}</li>`).join('')}
+                    </ul>
+                </div>
+            ` : ''}
+            
+            <div class="analysis-details">
+                <h5><i class="fas fa-chart-bar"></i> Analysis Details</h5>
+                <div class="details-grid">
+                    <div class="detail-item">
+                        <span class="detail-label">Analysis Time</span>
+                        <span class="detail-value">${new Date().toLocaleString()}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">Features Analyzed</span>
+                        <span class="detail-value">${Object.keys(results.features || {}).length}</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    // Update history display
+    updateHistoryDisplay();
+}
+
+function updateHistoryDisplay() {
+    const historyContainer = document.getElementById('historyContainer');
+    if (!historyContainer) return;
+    
+    if (urlHistory.length === 0) {
+        historyContainer.innerHTML = '<p class="no-history">No analysis history yet. Analyze a URL to get started!</p>';
+        return;
+    }
+    
+    const historyHTML = urlHistory.map((item, index) => `
+        <div class="history-item">
+            <div class="history-info">
+                <div class="url-preview">${item.url}</div>
+                <div class="history-meta">
+                    <span class="timestamp">${new Date(item.timestamp).toLocaleString()}</span>
+                    <span class="risk-badge ${getRiskColor(item.risk_level)}">${item.risk_level}</span>
+                </div>
+            </div>
+            <div class="risk-score-mini">${item.risk_score}/100</div>
+        </div>
+    `).join('');
+    
+    historyContainer.innerHTML = historyHTML;
+}
+
+function getRiskIcon(riskLevel) {
+    switch (riskLevel) {
+        case 'Critical': return 'fa-skull-crossbones';
+        case 'High': return 'fa-exclamation-triangle';  
+        case 'Medium': return 'fa-exclamation-circle';
+        default: return 'fa-shield-alt';
+    }
+}
+
+function getRiskColor(riskLevel) {
+    switch (riskLevel) {
+        case 'Critical': return 'critical';
+        case 'High': return 'high';
+        case 'Medium': return 'medium';
+        default: return 'low';
+    }
+}
+
+function loadHistory() {
+    // Load history from localStorage
+    const saved = localStorage.getItem('phishguard_history');
+    if (saved) {
+        try {
+            urlHistory = JSON.parse(saved).slice(0, 5); // Keep only 5 most recent
+            updateHistoryDisplay();
+        } catch (e) {
+            console.error('Error loading history:', e);
+            urlHistory = [];
+        }
+    }
+}
+
+function saveHistory() {
+    try {
+        localStorage.setItem('phishguard_history', JSON.stringify(urlHistory));
+    } catch (e) {
+        console.error('Error saving history:', e);
+    }
+}
+
+function addToHistory(url, results) {
+    const historyItem = {
+        url: url,
+        risk_score: results.risk_score || 0,
+        risk_level: results.risk_level || 'Low',
+        timestamp: new Date().toISOString(),
+        warnings_count: (results.warnings || []).length
+    };
+    
+    // Add to beginning of array
+    urlHistory.unshift(historyItem);
+    
+    // Keep only 5 most recent
+    urlHistory = urlHistory.slice(0, 5);
+    
+    // Save to localStorage
+    saveHistory();
+    
+    // Update display
+    updateHistoryDisplay();
+}
+
+// Toast notification system
+function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toastContainer');
+    if (!toastContainer) {
+        // Create toast container if it doesn't exist
+        const container = document.createElement('div');
+        container.id = 'toastContainer';
+        container.className = 'toast-container';
+        document.body.appendChild(container);
+    }
+    
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    
+    const icon = getToastIcon(type);
+    toast.innerHTML = `
+        <div class="toast-content">
+            <i class="fas ${icon}"></i>
+            <span>${message}</span>
+        </div>
+        <button class="toast-close" onclick="this.parentElement.remove()">
+            <i class="fas fa-times"></i>
+        </button>
+    `;
+    
+    // Add to container
+    const container = document.getElementById('toastContainer');
+    container.appendChild(toast);
+    
+    // Animate in
+    setTimeout(() => toast.classList.add('show'), 100);
+    
+    // Auto remove after 5 seconds
+    setTimeout(() => {
+        toast.classList.remove('show');
+        setTimeout(() => toast.remove(), 300);
+    }, 5000);
+}
+
+function getToastIcon(type) {
+    switch (type) {
+        case 'success': return 'fa-check-circle';
+        case 'error': return 'fa-exclamation-circle';
+        case 'warning': return 'fa-exclamation-triangle';
+        default: return 'fa-info-circle';
     }
 }
 
