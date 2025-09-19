@@ -60,11 +60,11 @@ function extractAdvancedURLFeatures(url) {
         features = { ...features, ...threatAnalysis.features };
         warnings.push(...threatAnalysis.warnings);
         
-        // Feature 31-36: Machine Learning Inspired Analysis
-        const mlAnalysis = performMLInspiredAnalysis(normalizedUrl, domain, features);
-        riskScore += mlAnalysis.risk;
-        features = { ...features, ...mlAnalysis.features };
-        warnings.push(...mlAnalysis.warnings);
+        // Feature 31-36: Advanced Security Analysis
+        const securityAnalysis = performAdvancedSecurityAnalysis(normalizedUrl, domain, features);
+        riskScore += securityAnalysis.risk;
+        features = { ...features, ...securityAnalysis.features };
+        warnings.push(...securityAnalysis.warnings);
         
         // Calculate confidence score
         const confidenceScore = calculateConfidenceScore(features, warnings.length);

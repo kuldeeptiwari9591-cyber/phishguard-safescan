@@ -86,7 +86,7 @@ class AdvancedPhishingDetector:
 
     def analyze_url_comprehensive(self, url: str) -> Dict[str, Any]:
         """
-        Comprehensive URL analysis with enhanced ML-inspired features
+        Comprehensive URL analysis with enhanced security features
         """
         features = {
             'url': url,
@@ -98,7 +98,6 @@ class AdvancedPhishingDetector:
             'ssl_info': {},
             'content_info': {},
             'threat_intelligence': {},
-            'ml_features': {},
             'confidence_score': 0
         }
         
@@ -136,7 +135,6 @@ class AdvancedPhishingDetector:
             self._analyze_domain_registration_enhanced(domain, features)
             self._analyze_dns_network_enhanced(domain, features)
             self._analyze_threat_intelligence_enhanced(url, domain, features)
-            self._perform_ml_inspired_analysis(url, domain, features)
             self._calculate_risk_confidence(features)
             
         except Exception as e:
@@ -175,7 +173,7 @@ class AdvancedPhishingDetector:
         return subdomain, domain_name, tld
 
     def _analyze_url_structure_enhanced(self, url: str, parsed, features: Dict) -> None:
-        """Enhanced URL structure analysis with ML-inspired features"""
+        """Enhanced URL structure analysis with security features"""
         
         # Advanced URL Length Analysis
         url_length = len(url)
@@ -194,14 +192,14 @@ class AdvancedPhishingDetector:
         char_analysis = self._analyze_character_composition(url)
         features['risk_score'] += char_analysis['risk']
         features['warnings'].extend(char_analysis['warnings'])
-        features['ml_features']['character_analysis'] = char_analysis['features']
+        features['feature_scores']['character_analysis'] = char_analysis['features']
         
         # Entropy and Randomness Analysis
         entropy_analysis = self._calculate_url_entropy(url)
         if entropy_analysis['suspicious']:
             features['risk_score'] += entropy_analysis['risk']
             features['warnings'].extend(entropy_analysis['warnings'])
-        features['ml_features']['entropy'] = entropy_analysis
+        features['feature_scores']['entropy'] = entropy_analysis
         
         # Path Structure Analysis
         path_analysis = self._analyze_path_structure(parsed)
@@ -365,7 +363,7 @@ class AdvancedPhishingDetector:
 
     def _analyze_domain_features_enhanced(self, domain: str, subdomain: str, 
                                         domain_name: str, tld: str, features: Dict) -> None:
-        """Enhanced domain feature analysis with ML techniques"""
+        """Enhanced domain feature analysis with security techniques"""
         
         # Advanced subdomain analysis
         subdomain_analysis = self._analyze_subdomains_advanced(subdomain, domain)
@@ -377,7 +375,7 @@ class AdvancedPhishingDetector:
         composition_analysis = self._analyze_domain_composition(domain_name)
         features['risk_score'] += composition_analysis['risk']
         features['warnings'].extend(composition_analysis['warnings'])
-        features['ml_features']['domain_composition'] = composition_analysis
+        features['feature_scores']['domain_composition'] = composition_analysis
         
         # TLD analysis with geopolitical context
         tld_analysis = self._analyze_tld_enhanced(tld, domain)

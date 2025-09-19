@@ -1,4 +1,5 @@
-// PhishGuard Main JavaScript - Frontend Controller & Quiz Logic
+// PhishGuard - Advanced Phishing Detection System
+// Enhanced with real-time threat intelligence and comprehensive security analysis
 
 // Global Variables
 let mobileMenuOpen = false;
@@ -8,197 +9,349 @@ let userAnswers = [];
 let quizScore = 0;
 let loadingTimeout = null;
 let isAnalyzing = false;
+let urlHistory = [];
 
-// Quiz Questions Pool (30+ questions)
+// Comprehensive Quiz Questions Database (30+ questions)
 const allQuizQuestions = [
     {
-        question: "What is a common sign of a phishing email?",
-        options: ["Misspelled URLs", "Official company logos", "Secure HTTPS links", "Proper grammar"],
-        answer: "Misspelled URLs",
-        explanation: "Phishing emails often contain misspelled URLs to trick users into visiting fake websites."
+        question: "What is the most reliable way to identify a phishing email?",
+        options: [
+            "Check the sender's email address carefully",
+            "Look for urgent language and threats",
+            "Verify links by hovering over them",
+            "All of the above"
+        ],
+        correct: 3,
+        explanation: "All these methods are important for identifying phishing emails. Always verify sender addresses, be suspicious of urgent language, and check links before clicking."
     },
     {
-        question: "Which URL is most likely to be a phishing attempt?",
-        options: ["https://amazon.com", "https://amaz0n-security.com", "https://www.amazon.com", "https://amazon.co.uk"],
-        answer: "https://amaz0n-security.com",
-        explanation: "This URL uses character substitution (0 for o) and adds suspicious words like 'security'."
+        question: "Which URL is most likely to be legitimate?",
+        options: [
+            "https://paypaI.com/login",
+            "https://www.paypal.com/login",
+            "http://paypal-security.net/verify",
+            "https://paypal.secure-login.org"
+        ],
+        correct: 1,
+        explanation: "The second option uses the correct spelling and official domain. The first uses a capital 'I' instead of 'l', and the others use suspicious subdomains."
     },
     {
-        question: "What should you do if you receive an urgent email asking for your password?",
-        options: ["Reply with your password immediately", "Click the link and verify", "Contact the company directly", "Forward it to friends"],
-        answer: "Contact the company directly",
-        explanation: "Always verify suspicious requests through official channels, never through the suspicious email itself."
+        question: "What should you do if you receive an unexpected email asking for personal information?",
+        options: [
+            "Reply with the requested information",
+            "Click the link to verify your account",
+            "Contact the company directly through official channels",
+            "Forward it to friends to ask their opinion"
+        ],
+        correct: 2,
+        explanation: "Always contact the company directly through their official website or phone number to verify if the request is legitimate."
     },
     {
-        question: "Which of these is NOT a red flag in an email?",
-        options: ["Generic greeting like 'Dear Customer'", "Urgent language like 'Act Now!'", "Your name in the greeting", "Threats of account suspension"],
-        answer: "Your name in the greeting",
-        explanation: "Legitimate emails often use your actual name, while phishing emails use generic greetings."
-    },
-    {
-        question: "What does HTTPS in a URL indicate?",
-        options: ["The site is definitely safe", "The connection is encrypted", "The site is phishing", "Nothing important"],
-        answer: "The connection is encrypted",
-        explanation: "HTTPS encrypts data transmission but doesn't guarantee the site is legitimate. Phishing sites can also use HTTPS."
-    },
-    {
-        question: "Which domain extension is commonly used in phishing?",
-        options: [".com", ".org", ".tk", ".edu"],
-        answer: ".tk",
-        explanation: "Free domain extensions like .tk are often used by attackers because they're easy to obtain."
+        question: "Which of these is a red flag in a URL?",
+        options: [
+            "HTTPS protocol",
+            "Multiple subdomains",
+            "Short domain name",
+            "Common TLD like .com"
+        ],
+        correct: 1,
+        explanation: "Multiple subdomains can be used to create confusing URLs that appear legitimate but redirect to malicious sites."
     },
     {
         question: "What is typosquatting?",
-        options: ["Typing very fast", "Using similar-looking domain names", "Correcting typos", "A keyboard layout"],
-        answer: "Using similar-looking domain names",
-        explanation: "Typosquatting involves registering domains similar to legitimate ones to trick users."
+        options: [
+            "A type of malware",
+            "Creating domains with slight misspellings of popular sites",
+            "A secure browsing technique",
+            "A password protection method"
+        ],
+        correct: 1,
+        explanation: "Typosquatting involves registering domains that are slight misspellings of popular websites to trick users into visiting malicious sites."
     },
     {
-        question: "If a URL contains an @ symbol, what might this indicate?",
-        options: ["It's an email address", "It's definitely safe", "Possible redirection trick", "It's encrypted"],
-        answer: "Possible redirection trick",
-        explanation: "The @ symbol in URLs can be used to redirect users to malicious sites while hiding the real destination."
-    },
-    {
-        question: "What should you check before clicking a link?",
-        options: ["The link color", "The link destination by hovering", "The email signature", "The send time"],
-        answer: "The link destination by hovering",
-        explanation: "Hovering over links reveals the actual destination URL before clicking."
-    },
-    {
-        question: "Which is a sign of a legitimate website?",
-        options: ["Pop-up warnings", "Multiple redirects", "Clear contact information", "Excessive ads"],
-        answer: "Clear contact information",
-        explanation: "Legitimate websites provide clear, verifiable contact information and privacy policies."
-    },
-    {
-        question: "What is social engineering in cybersecurity?",
-        options: ["Building social networks", "Manipulating people to reveal information", "Engineering social apps", "Social media marketing"],
-        answer: "Manipulating people to reveal information",
-        explanation: "Social engineering exploits human psychology to trick people into divulging confidential information."
-    },
-    {
-        question: "Which email greeting is most suspicious?",
-        options: ["Dear John Smith", "Hello Mr. Smith", "Dear Valued Customer", "Hi John"],
-        answer: "Dear Valued Customer",
-        explanation: "Generic greetings like 'Dear Valued Customer' are red flags as legitimate companies use your actual name."
-    },
-    {
-        question: "What is the best practice for password security?",
-        options: ["Use the same password everywhere", "Use complex, unique passwords", "Share passwords with colleagues", "Write passwords on sticky notes"],
-        answer: "Use complex, unique passwords",
-        explanation: "Complex, unique passwords for each account provide the best security against breaches."
-    },
-    {
-        question: "How can you verify if an email is from a legitimate company?",
-        options: ["Check the sender's email carefully", "Trust the company logo", "Click all links to verify", "Forward it to check"],
-        answer: "Check the sender's email carefully",
-        explanation: "Legitimate companies use official email domains. Always verify the sender's address carefully."
-    },
-    {
-        question: "What is two-factor authentication (2FA)?",
-        options: ["Using two passwords", "An extra security layer", "Two security questions", "Dual antivirus"],
-        answer: "An extra security layer",
-        explanation: "2FA adds an extra verification step beyond just a password, significantly improving security."
-    },
-    {
-        question: "Which URL shortener should you be cautious of?",
-        options: ["bit.ly", "tinyurl.com", "All of them", "goo.gl"],
-        answer: "All of them",
-        explanation: "All URL shorteners can hide the real destination, making it impossible to verify safety before clicking."
+        question: "Which email characteristic is most suspicious?",
+        options: [
+            "Personalized greeting",
+            "Company logo present",
+            "Generic greeting like 'Dear Customer'",
+            "Professional formatting"
+        ],
+        correct: 2,
+        explanation: "Generic greetings are often used in phishing emails because attackers don't have personal information about their targets."
     },
     {
         question: "What does a padlock icon in the browser address bar indicate?",
-        options: ["The site is completely safe", "The connection is encrypted", "The site is government approved", "No viruses present"],
-        answer: "The connection is encrypted",
-        explanation: "The padlock indicates an encrypted connection (HTTPS) but doesn't guarantee the site is legitimate."
+        options: [
+            "The website is definitely safe",
+            "The connection is encrypted",
+            "The website is verified by authorities",
+            "The website cannot be hacked"
+        ],
+        correct: 1,
+        explanation: "The padlock indicates an encrypted connection (HTTPS), but it doesn't guarantee the website is legitimate or safe."
     },
     {
-        question: "Which of these is a common phishing tactic?",
-        options: ["Offering helpful tech tips", "Creating urgency and fear", "Providing detailed documentation", "Using professional language"],
-        answer: "Creating urgency and fear",
-        explanation: "Phishing attacks often create false urgency to pressure victims into acting without thinking."
+        question: "Which action should you take before entering sensitive information on a website?",
+        options: [
+            "Check if the URL starts with HTTPS",
+            "Verify the website's identity",
+            "Look for trust indicators",
+            "All of the above"
+        ],
+        correct: 3,
+        explanation: "Before entering sensitive information, you should verify HTTPS, check the website's identity, and look for trust indicators like certificates."
     },
     {
-        question: "What should you do if you think you've fallen for a phishing scam?",
-        options: ["Do nothing", "Change passwords immediately", "Delete your email", "Buy antivirus software"],
-        answer: "Change passwords immediately",
-        explanation: "If compromised, immediately change passwords, check accounts, and monitor for suspicious activity."
+        question: "What is the safest way to access your bank's website?",
+        options: [
+            "Click links in emails from your bank",
+            "Type the URL directly into your browser",
+            "Use a search engine to find the bank",
+            "Use bookmarks you've saved"
+        ],
+        correct: 3,
+        explanation: "Using saved bookmarks is safest because you know they point to the legitimate website. Typing URLs directly is also safe if you're careful."
     },
     {
-        question: "Which browser security feature helps prevent phishing?",
-        options: ["Pop-up blocker", "Safe browsing warnings", "Download manager", "Bookmark sync"],
-        answer: "Safe browsing warnings",
-        explanation: "Safe browsing features warn users about known malicious or suspicious websites."
+        question: "Which of these is NOT a common phishing technique?",
+        options: [
+            "Creating urgency",
+            "Impersonating trusted organizations",
+            "Using strong encryption",
+            "Requesting personal information"
+        ],
+        correct: 2,
+        explanation: "Strong encryption is a security feature, not a phishing technique. Phishers typically use urgency, impersonation, and requests for personal information."
+    },
+    {
+        question: "What should you do if you accidentally clicked a suspicious link?",
+        options: [
+            "Ignore it and continue browsing",
+            "Close the browser immediately",
+            "Run antivirus software and change passwords",
+            "Restart your computer"
+        ],
+        correct: 2,
+        explanation: "If you clicked a suspicious link, run antivirus software, change relevant passwords, and monitor your accounts for suspicious activity."
+    },
+    {
+        question: "Which domain extension is most commonly abused by phishers?",
+        options: [
+            ".com",
+            ".org",
+            ".tk (free domains)",
+            ".edu"
+        ],
+        correct: 2,
+        explanation: "Free domain extensions like .tk are often abused by phishers because they're easy to obtain and don't require verification."
     },
     {
         question: "What is spear phishing?",
-        options: ["Fishing with a spear", "Mass email attacks", "Targeted personal attacks", "Mobile phone attacks"],
-        answer: "Targeted personal attacks",
-        explanation: "Spear phishing targets specific individuals with personalized attacks using their personal information."
+        options: [
+            "Phishing using fake spear imagery",
+            "Targeted phishing attacks on specific individuals",
+            "Phishing through social media only",
+            "A type of malware"
+        ],
+        correct: 1,
+        explanation: "Spear phishing involves targeted attacks on specific individuals or organizations, often using personal information to appear more credible."
     },
     {
-        question: "Why do attackers use urgent language in phishing emails?",
-        options: ["To be helpful", "To bypass rational thinking", "To save time", "To appear official"],
-        answer: "To bypass rational thinking",
-        explanation: "Urgent language creates panic and pressure, causing victims to act impulsively without verification."
+        question: "Which browser feature helps protect against phishing?",
+        options: [
+            "Pop-up blocker",
+            "Safe browsing warnings",
+            "Password manager",
+            "All of the above"
+        ],
+        correct: 3,
+        explanation: "All these features help protect against phishing: safe browsing warnings alert you to dangerous sites, pop-up blockers prevent malicious pop-ups, and password managers can detect fake sites."
     },
     {
-        question: "What is a common characteristic of phishing websites?",
-        options: ["Perfect spelling", "Professional design", "Poor grammar and spelling", "Detailed privacy policy"],
-        answer: "Poor grammar and spelling",
-        explanation: "Many phishing sites contain obvious grammar and spelling errors due to rushed creation or language barriers."
+        question: "What is the best practice for handling suspicious emails?",
+        options: [
+            "Delete them immediately",
+            "Report them as spam/phishing",
+            "Forward them to IT security",
+            "Both B and C"
+        ],
+        correct: 3,
+        explanation: "You should both report suspicious emails as spam/phishing to your email provider and forward them to your IT security team if applicable."
     },
     {
-        question: "Which action is safest when receiving a suspicious email?",
-        options: ["Click to investigate", "Reply asking for verification", "Delete without opening", "Forward to IT"],
-        answer: "Delete without opening",
-        explanation: "When in doubt, delete suspicious emails without opening attachments or clicking links."
+        question: "Which URL parameter is often used in phishing attacks?",
+        options: [
+            "?redirect=",
+            "?secure=true",
+            "?version=1.0",
+            "?lang=en"
+        ],
+        correct: 0,
+        explanation: "Redirect parameters can be used to send users to malicious sites after they visit what appears to be a legitimate URL."
     },
     {
         question: "What is pharming?",
-        options: ["Email phishing", "DNS hijacking attack", "Phone scams", "Social media fraud"],
-        answer: "DNS hijacking attack",
-        explanation: "Pharming redirects website traffic to malicious sites by compromising DNS servers or local DNS settings."
+        options: [
+            "A type of agriculture",
+            "Redirecting users from legitimate sites to fake ones",
+            "A secure browsing method",
+            "A password storage technique"
+        ],
+        correct: 1,
+        explanation: "Pharming involves redirecting users from legitimate websites to fake ones, often by compromising DNS servers or local host files."
     },
     {
-        question: "How often should you update your passwords?",
-        options: ["Never", "Every few years", "Regularly, especially after breaches", "Only when forgotten"],
-        answer: "Regularly, especially after breaches",
-        explanation: "Regular password updates, especially after data breaches, help maintain account security."
+        question: "Which of these is a sign of a secure website?",
+        options: [
+            "Professional design",
+            "Valid SSL certificate",
+            "Contact information provided",
+            "All of the above"
+        ],
+        correct: 3,
+        explanation: "While professional design and contact information are good signs, a valid SSL certificate is the most important technical indicator of a secure connection."
     },
     {
-        question: "What is the main goal of phishing attacks?",
-        options: ["Entertainment", "Stealing personal information", "Testing security", "Educational purposes"],
-        answer: "Stealing personal information",
-        explanation: "Phishing aims to steal credentials, personal data, or financial information for malicious purposes."
+        question: "What should you do before downloading software from the internet?",
+        options: [
+            "Check the publisher's reputation",
+            "Verify digital signatures",
+            "Use official download sources",
+            "All of the above"
+        ],
+        correct: 3,
+        explanation: "Before downloading software, always check the publisher's reputation, verify digital signatures, and use official download sources to avoid malware."
     },
     {
-        question: "Which attachment type is commonly used in phishing?",
-        options: [".txt files", ".jpg images", ".exe files", ".pdf documents"],
-        answer: ".exe files",
-        explanation: "Executable files (.exe) can contain malware and should be treated with extreme caution."
+        question: "Which social engineering technique creates false urgency?",
+        options: [
+            "Pretexting",
+            "Scareware",
+            "Baiting",
+            "Tailgating"
+        ],
+        correct: 1,
+        explanation: "Scareware creates false urgency by claiming your computer is infected or at risk, pressuring you to take immediate action."
     },
     {
-        question: "What should you verify before entering sensitive information online?",
-        options: ["Website speed", "Website colors", "Website URL and security", "Website ads"],
-        answer: "Website URL and security",
-        explanation: "Always verify you're on the correct, secure website before entering sensitive information."
+        question: "What is the most effective way to verify a suspicious website?",
+        options: [
+            "Check online reviews",
+            "Look up the domain registration",
+            "Contact the supposed organization directly",
+            "All of the above"
+        ],
+        correct: 3,
+        explanation: "All these methods are effective: online reviews show others' experiences, domain registration reveals ownership details, and direct contact confirms legitimacy."
     },
     {
-        question: "What is the most effective way to protect against phishing?",
-        options: ["Expensive antivirus", "Education and awareness", "Avoiding the internet", "Using old browsers"],
-        answer: "Education and awareness",
-        explanation: "User education and awareness are the most effective defenses against social engineering attacks."
+        question: "Which email header can help identify phishing attempts?",
+        options: [
+            "From address",
+            "Reply-to address",
+            "Return-path",
+            "All of the above"
+        ],
+        correct: 3,
+        explanation: "All email headers can provide clues about phishing: mismatched from/reply-to addresses and suspicious return paths are common indicators."
+    },
+    {
+        question: "What is the primary goal of most phishing attacks?",
+        options: [
+            "Installing malware",
+            "Stealing personal information",
+            "Damaging computers",
+            "Creating botnets"
+        ],
+        correct: 1,
+        explanation: "While phishing can lead to malware installation, the primary goal is usually to steal personal information like passwords, credit card numbers, or identity details."
+    },
+    {
+        question: "Which of these is a characteristic of a phishing URL?",
+        options: [
+            "Uses HTTPS protocol",
+            "Contains the brand name",
+            "Has suspicious subdomains",
+            "Ends with .com"
+        ],
+        correct: 2,
+        explanation: "Suspicious subdomains are often used in phishing URLs to make them appear legitimate while actually redirecting to malicious sites."
+    },
+    {
+        question: "What should you do if your organization experiences a phishing attack?",
+        options: [
+            "Keep it secret to avoid embarrassment",
+            "Report it to authorities and stakeholders",
+            "Only tell the IT department",
+            "Wait to see if any damage occurs"
+        ],
+        correct: 1,
+        explanation: "Phishing attacks should be reported to relevant authorities and stakeholders to prevent further damage and help others avoid similar attacks."
+    },
+    {
+        question: "Which two-factor authentication method is most secure against phishing?",
+        options: [
+            "SMS codes",
+            "Email codes",
+            "Authenticator apps",
+            "Security questions"
+        ],
+        correct: 2,
+        explanation: "Authenticator apps are most secure because they generate time-based codes that can't be intercepted like SMS or email codes."
+    },
+    {
+        question: "What is vishing?",
+        options: [
+            "Visual phishing through images",
+            "Voice phishing through phone calls",
+            "Video phishing through streaming",
+            "Virtual phishing in games"
+        ],
+        correct: 1,
+        explanation: "Vishing (voice phishing) involves phone calls where attackers impersonate legitimate organizations to steal personal information."
+    },
+    {
+        question: "Which browser setting helps prevent phishing?",
+        options: [
+            "Blocking third-party cookies",
+            "Enabling safe browsing",
+            "Disabling JavaScript",
+            "Using private browsing mode"
+        ],
+        correct: 1,
+        explanation: "Safe browsing features in browsers actively check websites against databases of known phishing and malware sites."
+    },
+    {
+        question: "What is the best way to handle a phishing email in your inbox?",
+        options: [
+            "Delete it immediately",
+            "Mark as spam and report",
+            "Reply asking if it's legitimate",
+            "Forward it to colleagues as a warning"
+        ],
+        correct: 1,
+        explanation: "Mark phishing emails as spam and report them to help email providers improve their filters and protect other users."
+    },
+    {
+        question: "Which of these makes a phishing email more convincing?",
+        options: [
+            "Personal information about the target",
+            "Official-looking logos and formatting",
+            "Urgent or threatening language",
+            "All of the above"
+        ],
+        correct: 3,
+        explanation: "Sophisticated phishing emails combine personal information, official branding, and psychological pressure to appear more legitimate and urgent."
     }
 ];
 
-// Initialize when DOM is loaded
+// DOM Content Loaded Event
 document.addEventListener('DOMContentLoaded', function() {
     initializeApp();
-    loadQuizQuestions();
+    setupEventListeners();
 });
 
+// Initialize Application
 function initializeApp() {
     console.log('PhishGuard initialized successfully');
     
@@ -210,392 +363,591 @@ function initializeApp() {
     
     // Initialize clipboard functionality
     initializeClipboard();
-}
-
-// Navigation Functions
-function scrollToSection(sectionId) {
-    const element = document.getElementById(sectionId);
-    if (element) {
-        element.scrollIntoView({ behavior: 'smooth' });
-        // Close mobile menu if open
-        if (mobileMenuOpen) {
-            toggleMobileMenu();
-        }
-    }
-}
-
-function toggleMobileMenu() {
-    const mobileNav = document.getElementById('mobileNav');
-    const menuIcon = document.getElementById('menu-icon');
     
-    mobileMenuOpen = !mobileMenuOpen;
+    // Load history
+    loadHistory();
+}
+
+// Setup Event Listeners
+function setupEventListeners() {
+    // URL Analysis Form
+    const urlForm = document.getElementById('urlForm');
+    if (urlForm) {
+        urlForm.addEventListener('submit', handleURLSubmit);
+    }
+
+    // Quiz functionality
+    const startQuizBtn = document.getElementById('startQuiz');
+    if (startQuizBtn) {
+        startQuizBtn.addEventListener('click', startQuiz);
+    }
+
+    // Mobile menu toggle
+    const mobileMenuBtn = document.getElementById('mobileMenuBtn');
+    if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', toggleMobileMenu);
+    }
+
+    // Keyboard shortcuts
+    document.addEventListener('keydown', handleKeyboardShortcuts);
+
+    // Add scroll effects
+    window.addEventListener('scroll', handleScrollEffects);
+}
+
+// Handle URL Form Submission
+async function handleURLSubmit(e) {
+    e.preventDefault();
     
-    if (mobileMenuOpen) {
-        mobileNav.classList.add('active');
-        menuIcon.className = 'fas fa-times';
-    } else {
-        mobileNav.classList.remove('active');
-        menuIcon.className = 'fas fa-bars';
+    if (isAnalyzing) {
+        showToast('Analysis already in progress', 'warning');
+        return;
     }
-}
 
-// Clipboard Functions
-function initializeClipboard() {
-    // Check if clipboard API is available
-    if (navigator.clipboard) {
-        console.log('Clipboard API available');
+    const urlInput = document.getElementById('urlInput').value.trim();
+    const resultsContainer = document.getElementById('results');
+    const loadingIndicator = document.getElementById('loadingIndicator');
+
+    if (!urlInput) {
+        showToast('Please enter a URL to analyze', 'error');
+        return;
     }
-}
 
-async function pasteFromClipboard() {
+    if (!isValidURL(urlInput)) {
+        showToast('Please enter a valid URL', 'error');
+        return;
+    }
+
     try {
-        if (navigator.clipboard && navigator.clipboard.readText) {
-            const text = await navigator.clipboard.readText();
-            const urlInput = document.getElementById('urlInput');
-            if (urlInput && text.trim()) {
-                urlInput.value = text.trim();
-                // Trigger input event to validate
-                urlInput.dispatchEvent(new Event('input', { bubbles: true }));
-                showToast('URL pasted from clipboard!', 'success');
-            }
-        } else {
-            showToast('Clipboard access not available. Please paste manually.', 'warning');
-        }
-    } catch (error) {
-        console.error('Failed to read from clipboard:', error);
-        showToast('Failed to paste from clipboard. Please paste manually.', 'error');
-    }
-}
-
-// Loading Management
-function showLoading(message = 'Analyzing...') {
-    const overlay = document.getElementById('loadingOverlay');
-    const loadingText = document.getElementById('loadingText');
-    
-    if (overlay && loadingText) {
-        loadingText.textContent = message;
-        overlay.classList.remove('hidden');
         isAnalyzing = true;
         
-        // Update analyze button
-        const analyzeBtn = document.querySelector('.analyze-btn');
-        if (analyzeBtn) {
-            analyzeBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i><span>Analyzing...</span>';
-            analyzeBtn.disabled = true;
-        }
-    }
-}
+        // Show loading state
+        loadingIndicator.classList.remove('hidden');
+        resultsContainer.classList.add('hidden');
+        
+        // Update button state
+        const analyzeBtn = document.querySelector('button[type="submit"]');
+        const originalText = analyzeBtn.textContent;
+        analyzeBtn.textContent = 'Analyzing...';
+        analyzeBtn.disabled = true;
 
-function hideLoading() {
-    const overlay = document.getElementById('loadingOverlay');
-    if (overlay) {
-        overlay.classList.add('hidden');
-        isAnalyzing = false;
-        
-        // Reset analyze button
-        const analyzeBtn = document.querySelector('.analyze-btn');
-        if (analyzeBtn) {
-            analyzeBtn.innerHTML = '<i class="fas fa-search"></i><span>Analyze URL</span><div class="btn-glow"></div>';
-            analyzeBtn.disabled = false;
-        }
-    }
-}
+        // Set timeout for loading indicator
+        loadingTimeout = setTimeout(() => {
+            if (isAnalyzing) {
+                updateLoadingMessage('Performing deep analysis...');
+            }
+        }, 3000);
 
-// URL Analysis Functions
-async function analyzeURL() {
-    if (isAnalyzing) return;
-    
-    const urlInput = document.getElementById('urlInput').value.trim();
-    const resultsContainer = document.getElementById('urlResults');
-    
-    if (!urlInput) {
-        showError(resultsContainer, 'Please enter a URL to analyze.');
-        return;
-    }
-    
-    if (!isValidURL(urlInput)) {
-        showError(resultsContainer, 'Please enter a valid URL (e.g., https://example.com).');
-        return;
-    }
-    
-    showLoading('Analyzing URL with 36+ security features...');
-    
-    // Clear previous results
-    resultsContainer.innerHTML = '';
-    resultsContainer.classList.add('hidden');
-    
-    try {
-        // Add realistic delay for better UX
-        await new Promise(resolve => setTimeout(resolve, 2000 + Math.random() * 2000));
-        
-        // Perform client-side analysis
-        const clientAnalysis = await performClientSideAnalysis(urlInput);
-        
-        // Simulate server-side analysis
-        const serverAnalysis = await performServerAnalysis(urlInput);
-        
+        // Perform comprehensive analysis
+        const [clientResults, serverResults] = await Promise.all([
+            performClientSideAnalysis(urlInput),
+            performServerAnalysis(urlInput)
+        ]);
+
         // Combine results
-        const combinedResults = combineAnalysisResults(clientAnalysis, serverAnalysis);
-        
+        const combinedResults = combineAnalysisResults(clientResults, serverResults);
+
+        // Clear loading timeout
+        if (loadingTimeout) {
+            clearTimeout(loadingTimeout);
+            loadingTimeout = null;
+        }
+
+        // Hide loading and show results
+        loadingIndicator.classList.add('hidden');
         displayURLResults(combinedResults);
         resultsContainer.classList.remove('hidden');
+        
+        // Add to history
+        addToHistory(urlInput, combinedResults);
         
         // Smooth scroll to results
         setTimeout(() => {
             resultsContainer.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         }, 100);
-        
+
+        // Restore button state
+        analyzeBtn.textContent = originalText;
+        analyzeBtn.disabled = false;
+
     } catch (error) {
         console.error('Analysis error:', error);
-        showError(resultsContainer, 'Analysis failed. Please try again.');
-        resultsContainer.classList.remove('hidden');
+        showToast('Analysis failed. Please try again.', 'error');
+        
+        // Hide loading indicator
+        loadingIndicator.classList.add('hidden');
+        
+        // Restore button state
+        const analyzeBtn = document.querySelector('button[type="submit"]');
+        analyzeBtn.textContent = 'Analyze URL';
+        analyzeBtn.disabled = false;
     } finally {
-        hideLoading();
+        isAnalyzing = false;
     }
 }
 
-async function performClientSideAnalysis(url) {
-    // Use the enhanced feature extraction from feature_script.js
-    return extractAdvancedURLFeatures(url);
+// Server-side Analysis
+async function performServerAnalysis(url) {
+    // Call real backend API
+    try {
+        const response = await fetch('/api/analyze-url', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ url: url })
+        });
+        
+        if (response.ok) {
+            return await response.json();
+        } else {
+            throw new Error('Server analysis failed');
+        }
+    } catch (error) {
+        console.error('Server analysis error:', error);
+        return {
+            timestamp: new Date().toLocaleString(),
+            serverFeatures: {},
+            threats: ['Server analysis unavailable'],
+            error: true
+        };
+    }
 }
 
-async function performServerAnalysis(url) {
-    // Simulate realistic server-side analysis
+// Client-side Analysis
+async function performClientSideAnalysis(url) {
     return new Promise((resolve) => {
         setTimeout(() => {
-            const result = {
+            const analysis = analyzeURLFeatures(url);
+            resolve({
                 timestamp: new Date().toLocaleString(),
-                serverFeatures: {
-                    domainAge: Math.floor(Math.random() * 365) + 30,
-                    sslCertificate: Math.random() > 0.15,
-                    blacklistStatus: Math.random() > 0.97,
-                    reputationScore: Math.floor(Math.random() * 100),
-                    malwareDetection: Math.random() > 0.98,
-                    phishingDatabase: Math.random() > 0.96,
-                    dnsRecords: Math.random() > 0.1,
-                    geolocation: ['US', 'UK', 'CA', 'DE', 'FR'][Math.floor(Math.random() * 5)],
-                    sslIssuer: ['Let\'s Encrypt', 'DigiCert', 'GlobalSign', 'Cloudflare'][Math.floor(Math.random() * 4)],
-                    contentAnalysis: {
-                        hasLoginForms: Math.random() > 0.7,
-                        hasPaymentForms: Math.random() > 0.8,
-                        suspiciousContent: Math.random() > 0.85
-                    }
-                },
-                threats: []
-            };
-            
-            // Add specific threats based on analysis
-            if (result.serverFeatures.blacklistStatus) {
-                result.threats.push('CRITICAL: Domain found in security blacklists');
-            }
-            if (result.serverFeatures.domainAge < 30) {
-                result.threats.push('Domain registered very recently');
-            }
-            if (!result.serverFeatures.sslCertificate) {
-                result.threats.push('Invalid or missing SSL certificate');
-            }
-            if (result.serverFeatures.reputationScore < 30) {
-                result.threats.push('Poor domain reputation score');
-            }
-            
-            resolve(result);
-        }, 1000 + Math.random() * 1000);
+                clientFeatures: analysis.features,
+                riskScore: analysis.riskScore,
+                warnings: analysis.warnings,
+                riskLevel: getRiskLevel(analysis.riskScore)
+            });
+        }, 1000);
     });
 }
 
+// Combine Analysis Results
 function combineAnalysisResults(clientResults, serverResults) {
-    let additionalRisk = 0;
-    
-    // Calculate additional risk from server analysis
-    if (serverResults.serverFeatures.blacklistStatus) additionalRisk += 50;
-    if (serverResults.serverFeatures.domainAge < 30) additionalRisk += 30;
-    if (!serverResults.serverFeatures.sslCertificate) additionalRisk += 25;
-    if (serverResults.serverFeatures.reputationScore < 30) additionalRisk += 20;
-    if (serverResults.serverFeatures.contentAnalysis.suspiciousContent) additionalRisk += 15;
-    
-    const combinedScore = Math.min(clientResults.riskScore + additionalRisk, 100);
-    
-    const combinedWarnings = [
-        ...clientResults.warnings,
-        ...serverResults.threats
-    ];
-    
+    const combinedScore = Math.min(
+        (clientResults.riskScore + (serverResults.risk_score || 0)) / 2,
+        100
+    );
+
     return {
-        ...clientResults,
-        ...serverResults,
-        riskScore: combinedScore,
-        warnings: combinedWarnings,
-        serverFeatures: serverResults.serverFeatures,
-        featuresAnalyzed: Object.keys(clientResults.features).length + Object.keys(serverResults.serverFeatures).length
+        timestamp: new Date().toLocaleString(),
+        riskScore: Math.round(combinedScore),
+        riskLevel: getRiskLevel(combinedScore),
+        warnings: [
+            ...clientResults.warnings,
+            ...(serverResults.warnings || [])
+        ],
+        features: {
+            client: clientResults.clientFeatures,
+            server: serverResults.serverFeatures || {}
+        },
+        threats: serverResults.threats || [],
+        analysis: {
+            client: clientResults,
+            server: serverResults
+        }
     };
 }
 
+// Display URL Analysis Results
 function displayURLResults(results) {
-    const container = document.getElementById('urlResults');
-    const riskLevel = getRiskLevel(results.riskScore);
-    const riskClass = getRiskClass(riskLevel);
+    const resultsContainer = document.getElementById('results');
     
-    container.innerHTML = `
-        <div class="results-header">
-            <h5><i class="fas fa-chart-line"></i> Comprehensive Analysis Results</h5>
-            <div class="analysis-badge">
-                <i class="fas fa-microscope"></i>
-                ${results.featuresAnalyzed}+ Features Analyzed
+    const riskColor = getRiskColor(results.riskLevel);
+    const riskIcon = getRiskIcon(results.riskLevel);
+    
+    resultsContainer.innerHTML = `
+        <div class="analysis-results">
+            <div class="result-header">
+                <div class="risk-indicator ${riskColor}">
+                    <i class="${riskIcon}"></i>
+                    <div>
+                        <h3>${results.riskLevel} Risk</h3>
+                        <p>Risk Score: ${results.riskScore}/100</p>
+                    </div>
+                </div>
+                <div class="timestamp">
+                    <i class="fas fa-clock"></i>
+                    <span>Analyzed: ${results.timestamp}</span>
+                </div>
+            </div>
+
+            ${results.warnings.length > 0 ? `
+                <div class="warnings-section">
+                    <h4><i class="fas fa-exclamation-triangle"></i> Security Warnings</h4>
+                    <ul class="warnings-list">
+                        ${results.warnings.map(warning => `<li>${warning}</li>`).join('')}
+                    </ul>
+                </div>
+            ` : ''}
+
+            ${results.threats.length > 0 ? `
+                <div class="threats-section">
+                    <h4><i class="fas fa-shield-alt"></i> Threat Intelligence</h4>
+                    <ul class="threats-list">
+                        ${results.threats.map(threat => `<li>${threat}</li>`).join('')}
+                    </ul>
+                </div>
+            ` : ''}
+
+            <div class="features-section">
+                <h4><i class="fas fa-cog"></i> Analysis Details</h4>
+                <div class="features-grid">
+                    ${generateFeatureCards(results.features)}
+                </div>
+            </div>
+
+            <div class="recommendations-section">
+                <h4><i class="fas fa-lightbulb"></i> Recommendations</h4>
+                <div class="recommendations">
+                    ${generateRecommendations(results.riskLevel, results.warnings)}
+                </div>
             </div>
         </div>
-        
-        <div class="risk-display">
-            <div class="risk-score">
-                <i class="fas ${getRiskIcon(riskLevel)} risk-icon ${riskClass}-icon"></i>
-                <div class="risk-level ${riskClass}-text">${riskLevel} Risk</div>
-                <div class="score-text">Security Score: ${results.riskScore}/100</div>
-                <div class="progress-bar-container">
-                    <div class="progress-bar-fill ${riskClass}" style="width: ${results.riskScore}%"></div>
+    `;
+}
+
+// Generate Feature Cards
+function generateFeatureCards(features) {
+    const cards = [];
+    
+    if (features.client) {
+        cards.push(`
+            <div class="feature-card">
+                <h5>URL Structure</h5>
+                <div class="feature-details">
+                    <p>Length: ${features.client.urlLength || 'N/A'}</p>
+                    <p>HTTPS: ${features.client.hasHTTPS ? 'Yes' : 'No'}</p>
+                    <p>Suspicious chars: ${features.client.suspiciousChars || 0}</p>
                 </div>
-                <div class="risk-recommendation">
-                    ${getRiskRecommendation(riskLevel)}
+            </div>
+        `);
+    }
+    
+    if (features.server) {
+        cards.push(`
+            <div class="feature-card">
+                <h5>Server Analysis</h5>
+                <div class="feature-details">
+                    <p>SSL Certificate: ${features.server.sslCertificate ? 'Valid' : 'Invalid'}</p>
+                    <p>Domain Age: ${features.server.domainAge || 'Unknown'} days</p>
+                    <p>Reputation: ${features.server.reputationScore || 'N/A'}/100</p>
+                </div>
+            </div>
+        `);
+    }
+    
+    return cards.join('');
+}
+
+// Generate Recommendations
+function generateRecommendations(riskLevel, warnings) {
+    const recommendations = [];
+    
+    switch (riskLevel) {
+        case 'Critical':
+            recommendations.push('🚫 Do not visit this website');
+            recommendations.push('🛡️ Run a security scan on your device');
+            recommendations.push('📞 Report this URL to security authorities');
+            break;
+        case 'High':
+            recommendations.push('⚠️ Exercise extreme caution');
+            recommendations.push('🔍 Verify the website through official channels');
+            recommendations.push('🚫 Do not enter personal information');
+            break;
+        case 'Medium':
+            recommendations.push('🔍 Verify the website legitimacy');
+            recommendations.push('🛡️ Use additional security measures');
+            recommendations.push('📱 Consider using mobile browser security');
+            break;
+        default:
+            recommendations.push('✅ Website appears relatively safe');
+            recommendations.push('🔒 Still verify HTTPS and certificates');
+            recommendations.push('🛡️ Keep security software updated');
+    }
+    
+    return recommendations.map(rec => `<p>${rec}</p>`).join('');
+}
+
+// Quiz Functions
+function startQuiz() {
+    // Select 5 random questions
+    quizQuestions = getRandomQuestions(5);
+    currentQuestionIndex = 0;
+    userAnswers = [];
+    quizScore = 0;
+    
+    displayQuestion();
+    
+    // Show quiz container and hide start button
+    document.getElementById('quizContainer').classList.remove('hidden');
+    document.getElementById('startQuiz').style.display = 'none';
+}
+
+function getRandomQuestions(count) {
+    const shuffled = [...allQuizQuestions].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, count);
+}
+
+function displayQuestion() {
+    const question = quizQuestions[currentQuestionIndex];
+    const quizContainer = document.getElementById('quizContainer');
+    
+    quizContainer.innerHTML = `
+        <div class="quiz-question">
+            <div class="question-header">
+                <h3>Question ${currentQuestionIndex + 1} of ${quizQuestions.length}</h3>
+                <div class="progress-bar">
+                    <div class="progress-fill" style="width: ${((currentQuestionIndex + 1) / quizQuestions.length) * 100}%"></div>
                 </div>
             </div>
             
-            <div class="analysis-details">
-                <h6><i class="fas fa-info-circle"></i> Analysis Summary</h6>
-                <div class="detail-grid">
-                    <div class="detail-item">
-                        <strong><i class="fas fa-globe"></i> URL:</strong> 
-                        <span class="url-display">${truncateURL(results.url)}</span>
-                    </div>
-                    <div class="detail-item">
-                        <strong><i class="fas fa-server"></i> Domain:</strong> 
-                        <span>${results.domain}</span>
-                    </div>
-                    <div class="detail-item">
-                        <strong><i class="fas fa-lock"></i> Protocol:</strong> 
-                        <span class="${results.features.httpsProtocol ? 'safe-text' : 'danger-text'}">
-                            ${results.features.httpsProtocol ? 'HTTPS ✓' : 'HTTP ⚠'}
-                        </span>
-                    </div>
-                    <div class="detail-item">
-                        <strong><i class="fas fa-calendar"></i> Domain Age:</strong> 
-                        <span>${results.serverFeatures?.domainAge || 'Unknown'} days</span>
-                    </div>
-                    <div class="detail-item">
-                        <strong><i class="fas fa-certificate"></i> SSL Status:</strong> 
-                        <span class="${results.serverFeatures?.sslCertificate ? 'safe-text' : 'danger-text'}">
-                            ${results.serverFeatures?.sslCertificate ? 'Valid ✓' : 'Invalid ⚠'}
-                        </span>
-                    </div>
-                    <div class="detail-item">
-                        <strong><i class="fas fa-clock"></i> Analyzed:</strong> 
-                        <span>${results.timestamp}</span>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        ${results.warnings.length > 0 ? `
-            <div class="warnings-list">
-                <h6><i class="fas fa-exclamation-triangle"></i> Security Warnings (${results.warnings.length})</h6>
-                <div class="warnings-grid">
-                    ${results.warnings.slice(0, 8).map(warning => `
-                        <div class="warning-item">
-                            <i class="fas fa-exclamation-circle"></i>
-                            <span>${warning}</span>
-                        </div>
+            <div class="question-content">
+                <h4>${question.question}</h4>
+                <div class="options">
+                    ${question.options.map((option, index) => `
+                        <button class="option-btn" onclick="selectAnswer(${index})">
+                            ${option}
+                        </button>
                     `).join('')}
-                    ${results.warnings.length > 8 ? `
-                        <div class="warning-item more-warnings">
-                            <i class="fas fa-ellipsis-h"></i>
-                            <span>+${results.warnings.length - 8} more warnings</span>
-                        </div>
-                    ` : ''}
                 </div>
             </div>
-        ` : `
-            <div class="no-warnings">
-                <i class="fas fa-check-circle"></i>
-                <h6>No Security Warnings Detected</h6>
-                <p>This URL passed all security checks without raising any red flags.</p>
-            </div>
-        `}
-        
-        <div class="features-analysis">
-            <h6><i class="fas fa-cogs"></i> Feature Analysis Breakdown</h6>
-            <div class="features-grid">
-                ${generateAdvancedFeatureItems(results.features, results.serverFeatures)}
-            </div>
-        </div>
-        
-        <div class="analysis-actions">
-            <button class="action-btn secondary" onclick="downloadReport(${JSON.stringify(results).replace(/"/g, '&quot;')})">
-                <i class="fas fa-download"></i> Download Report
-            </button>
-            <button class="action-btn primary" onclick="analyzeAnother()">
-                <i class="fas fa-plus"></i> Analyze Another URL
-            </button>
         </div>
     `;
+}
+
+function selectAnswer(selectedIndex) {
+    const question = quizQuestions[currentQuestionIndex];
+    const isCorrect = selectedIndex === question.correct;
     
-    // Animate progress bar
+    userAnswers.push({
+        question: question.question,
+        selected: selectedIndex,
+        correct: question.correct,
+        isCorrect: isCorrect,
+        explanation: question.explanation
+    });
+    
+    if (isCorrect) {
+        quizScore++;
+    }
+    
+    // Show feedback
+    showAnswerFeedback(selectedIndex, question);
+    
+    // Move to next question after delay
     setTimeout(() => {
-        const progressBar = container.querySelector('.progress-bar-fill');
-        if (progressBar) {
-            progressBar.style.width = `${results.riskScore}%`;
+        currentQuestionIndex++;
+        if (currentQuestionIndex < quizQuestions.length) {
+            displayQuestion();
+        } else {
+            showQuizResults();
         }
-    }, 100);
+    }, 2000);
 }
 
-function generateAdvancedFeatureItems(clientFeatures, serverFeatures) {
-    const features = [
-        { name: 'HTTPS Protocol', value: clientFeatures.httpsProtocol, type: 'security', critical: true },
-        { name: 'URL Length', value: clientFeatures.urlLength === 'normal', type: 'structure' },
-        { name: 'Domain Structure', value: !clientFeatures.excessiveHyphens, type: 'structure' },
-        { name: 'Subdomain Analysis', value: !clientFeatures.excessiveSubdomains, type: 'structure' },
-        { name: 'Suspicious Keywords', value: clientFeatures.suspiciousKeywords === 0, type: 'content' },
-        { name: 'URL Shortener', value: !clientFeatures.isShortener, type: 'behavior' },
-        { name: 'IP Address Usage', value: !clientFeatures.usesIPAddress, type: 'structure', critical: true },
-        { name: 'Typosquatting Check', value: !clientFeatures.possibleTyposquatting, type: 'reputation', critical: true },
-        { name: 'SSL Certificate', value: serverFeatures?.sslCertificate, type: 'security', critical: true },
-        { name: 'Domain Reputation', value: serverFeatures?.reputationScore > 70, type: 'reputation' },
-        { name: 'Blacklist Status', value: !serverFeatures?.blacklistStatus, type: 'security', critical: true },
-        { name: 'Domain Age', value: serverFeatures?.domainAge > 90, type: 'reputation' },
-        { name: 'DNS Records', value: serverFeatures?.dnsRecords, type: 'infrastructure' },
-        { name: 'Content Analysis', value: !serverFeatures?.contentAnalysis?.suspiciousContent, type: 'content' }
-    ];
+function showAnswerFeedback(selectedIndex, question) {
+    const options = document.querySelectorAll('.option-btn');
     
-    return features.map(feature => {
-        const status = feature.value ? 'pass' : 'fail';
-        const statusText = feature.value ? 'Pass' : 'Fail';
-        const icon = getFeatureIcon(feature.type);
-        const criticalBadge = feature.critical ? '<span class="critical-badge">Critical</span>' : '';
-        
-        return `
-            <div class="feature-item ${status} ${feature.critical ? 'critical-feature' : ''}">
-                <div class="feature-header">
-                    <span class="feature-name">
-                        <i class="fas ${icon}"></i>
-                        ${feature.name}
-                    </span>
-                    ${criticalBadge}
-                </div>
-                <span class="feature-status ${status}">
-                    <i class="fas ${feature.value ? 'fa-check' : 'fa-times'}"></i>
-                    ${statusText}
-                </span>
-            </div>
-        `;
-    }).join('');
+    options.forEach((btn, index) => {
+        btn.disabled = true;
+        if (index === question.correct) {
+            btn.classList.add('correct');
+        } else if (index === selectedIndex && index !== question.correct) {
+            btn.classList.add('incorrect');
+        }
+    });
+    
+    // Show explanation
+    const questionContent = document.querySelector('.question-content');
+    questionContent.innerHTML += `
+        <div class="explanation">
+            <h5>Explanation:</h5>
+            <p>${question.explanation}</p>
+        </div>
+    `;
 }
 
-function getFeatureIcon(type) {
-    const icons = {
-        security: 'fa-shield-alt',
-        structure: 'fa-sitemap',
-        content: 'fa-file-alt',
-        behavior: 'fa-user-secret',
-        reputation: 'fa-star',
-        infrastructure: 'fa-server'
+function showQuizResults() {
+    const percentage = Math.round((quizScore / quizQuestions.length) * 100);
+    const quizContainer = document.getElementById('quizContainer');
+    
+    let performanceLevel = '';
+    let performanceColor = '';
+    
+    if (percentage >= 80) {
+        performanceLevel = 'Excellent';
+        performanceColor = 'text-green-400';
+    } else if (percentage >= 60) {
+        performanceLevel = 'Good';
+        performanceColor = 'text-blue-400';
+    } else if (percentage >= 40) {
+        performanceLevel = 'Fair';
+        performanceColor = 'text-yellow-400';
+    } else {
+        performanceLevel = 'Needs Improvement';
+        performanceColor = 'text-red-400';
+    }
+    
+    quizContainer.innerHTML = `
+        <div class="quiz-results">
+            <div class="results-header">
+                <h3>Quiz Complete!</h3>
+                <div class="score-display">
+                    <div class="score-circle">
+                        <span class="score-number">${percentage}%</span>
+                        <span class="score-label">${performanceLevel}</span>
+                    </div>
+                </div>
+                <p class="${performanceColor}">You scored ${quizScore} out of ${quizQuestions.length} questions correctly.</p>
+            </div>
+            
+            <div class="detailed-results">
+                <h4>Review Your Answers:</h4>
+                ${userAnswers.map((answer, index) => `
+                    <div class="answer-review ${answer.isCorrect ? 'correct' : 'incorrect'}">
+                        <h5>Question ${index + 1}: ${answer.isCorrect ? '✓' : '✗'}</h5>
+                        <p class="question-text">${answer.question}</p>
+                        <p class="answer-text">Your answer: ${quizQuestions[index].options[answer.selected]}</p>
+                        ${!answer.isCorrect ? `<p class="correct-answer">Correct answer: ${quizQuestions[index].options[answer.correct]}</p>` : ''}
+                        <p class="explanation">${answer.explanation}</p>
+                    </div>
+                `).join('')}
+            </div>
+            
+            <div class="quiz-actions">
+                <button onclick="restartQuiz()" class="btn-primary">Take Quiz Again</button>
+                <button onclick="closeQuiz()" class="btn-secondary">Close Quiz</button>
+            </div>
+        </div>
+    `;
+}
+
+function restartQuiz() {
+    document.getElementById('startQuiz').style.display = 'block';
+    document.getElementById('quizContainer').classList.add('hidden');
+}
+
+function closeQuiz() {
+    document.getElementById('startQuiz').style.display = 'block';
+    document.getElementById('quizContainer').classList.add('hidden');
+}
+
+// History Management Functions
+function addToHistory(url, results) {
+    const historyEntry = {
+        url: url,
+        riskScore: results.riskScore || 0,
+        riskLevel: results.riskLevel || 'Low',
+        timestamp: new Date().toLocaleString(),
+        warnings: results.warnings ? results.warnings.length : 0
     };
-    return icons[type] || 'fa-cog';
+    
+    // Add to beginning of history
+    urlHistory.unshift(historyEntry);
+    
+    // Keep only 5 most recent
+    if (urlHistory.length > 5) {
+        urlHistory.pop();
+    }
+    
+    // Update UI
+    updateHistoryDisplay();
+    
+    // Save to localStorage
+    localStorage.setItem('phishguard_history', JSON.stringify(urlHistory));
+}
+
+function loadHistory() {
+    try {
+        const saved = localStorage.getItem('phishguard_history');
+        if (saved) {
+            urlHistory = JSON.parse(saved);
+            updateHistoryDisplay();
+        }
+    } catch (error) {
+        console.error('Failed to load history:', error);
+    }
+}
+
+function updateHistoryDisplay() {
+    const historyContainer = document.getElementById('historyContainer');
+    if (!historyContainer) return;
+    
+    if (urlHistory.length === 0) {
+        historyContainer.innerHTML = '<p class="text-gray-400">No recent analyses</p>';
+        return;
+    }
+    
+    const historyHTML = urlHistory.map(entry => `
+        <div class="history-item p-3 border-l-4 ${getRiskBorderColor(entry.riskLevel)} bg-gray-800 rounded-r-lg mb-2">
+            <div class="flex justify-between items-start">
+                <div class="flex-1">
+                    <p class="text-white font-medium truncate" title="${entry.url}">${entry.url}</p>
+                    <div class="flex items-center gap-4 mt-1">
+                        <span class="text-sm ${getRiskTextColor(entry.riskLevel)}">${entry.riskLevel} Risk</span>
+                        <span class="text-sm text-gray-400">${entry.warnings} warnings</span>
+                        <span class="text-sm text-gray-500">${entry.timestamp}</span>
+                    </div>
+                </div>
+                <div class="risk-score ${getRiskScoreClass(entry.riskScore)} ml-4">
+                    ${entry.riskScore}
+                </div>
+            </div>
+        </div>
+    `).join('');
+    
+    historyContainer.innerHTML = historyHTML;
+}
+
+function getRiskBorderColor(riskLevel) {
+    switch (riskLevel) {
+        case 'Critical': return 'border-red-500';
+        case 'High': return 'border-orange-500';
+        case 'Medium': return 'border-yellow-500';
+        default: return 'border-green-500';
+    }
+}
+
+function getRiskTextColor(riskLevel) {
+    switch (riskLevel) {
+        case 'Critical': return 'text-red-400';
+        case 'High': return 'text-orange-400';
+        case 'Medium': return 'text-yellow-400';
+        default: return 'text-green-400';
+    }
+}
+
+function getRiskScoreClass(score) {
+    if (score >= 80) return 'text-red-400 font-bold';
+    if (score >= 60) return 'text-orange-400 font-bold';
+    if (score >= 30) return 'text-yellow-400 font-bold';
+    return 'text-green-400 font-bold';
+}
+
+function clearHistory() {
+    urlHistory = [];
+    localStorage.removeItem('phishguard_history');
+    updateHistoryDisplay();
+    showToast('History cleared successfully', 'success');
+}
+
+// Utility Functions
+function isValidURL(string) {
+    try {
+        new URL(string.startsWith('http') ? string : 'https://' + string);
+        return true;
+    } catch (_) {
+        return false;
+    }
 }
 
 function getRiskLevel(score) {
@@ -605,439 +957,113 @@ function getRiskLevel(score) {
     return 'Low';
 }
 
-function getRiskClass(level) {
-    return level.toLowerCase();
-}
-
-function getRiskIcon(level) {
-    const icons = {
-        'Low': 'fa-check-circle',
-        'Medium': 'fa-exclamation-circle',
-        'High': 'fa-exclamation-triangle',
-        'Critical': 'fa-times-circle'
-    };
-    return icons[level] || 'fa-question-circle';
-}
-
-function getRiskRecommendation(level) {
-    const recommendations = {
-        'Low': '<span class="safe-text">✓ Safe to proceed</span>',
-        'Medium': '<span class="warning-text">⚠ Proceed with caution</span>',
-        'High': '<span class="danger-text">⚠ High risk - avoid if possible</span>',
-        'Critical': '<span class="critical-text">🚫 Do not visit this site</span>'
-    };
-    return recommendations[level] || '';
-}
-
-function truncateURL(url, maxLength = 50) {
-    if (url.length <= maxLength) return url;
-    return url.substring(0, maxLength) + '...';
-}
-
-// Utility Functions
-function isValidURL(string) {
-    try {
-        // Add protocol if missing
-        if (!string.startsWith('http://') && !string.startsWith('https://')) {
-            string = 'https://' + string;
-        }
-        new URL(string);
-        return true;
-    } catch (_) {
-        return false;
+function getRiskColor(level) {
+    switch (level) {
+        case 'Critical': return 'risk-critical';
+        case 'High': return 'risk-high';
+        case 'Medium': return 'risk-medium';
+        default: return 'risk-low';
     }
 }
 
-function showError(container, message) {
-    container.innerHTML = `
-        <div class="error-message">
-            <i class="fas fa-exclamation-triangle"></i>
-            <h5>Analysis Error</h5>
-            <p>${message}</p>
-        </div>
-    `;
-    container.classList.remove('hidden');
+function getRiskIcon(level) {
+    switch (level) {
+        case 'Critical': return 'fas fa-exclamation-triangle';
+        case 'High': return 'fas fa-exclamation-circle';
+        case 'Medium': return 'fas fa-exclamation';
+        default: return 'fas fa-check-circle';
+    }
 }
 
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');
     toast.className = `toast toast-${type}`;
-    toast.innerHTML = `
-        <i class="fas ${getToastIcon(type)}"></i>
-        <span>${message}</span>
-    `;
+    toast.textContent = message;
     
     document.body.appendChild(toast);
     
-    // Animate in
-    setTimeout(() => toast.classList.add('show'), 100);
+    setTimeout(() => {
+        toast.classList.add('show');
+    }, 100);
     
-    // Remove after 3 seconds
     setTimeout(() => {
         toast.classList.remove('show');
-        setTimeout(() => document.body.removeChild(toast), 300);
+        setTimeout(() => {
+            document.body.removeChild(toast);
+        }, 300);
     }, 3000);
 }
 
-function getToastIcon(type) {
-    const icons = {
-        success: 'fa-check-circle',
-        warning: 'fa-exclamation-triangle',
-        error: 'fa-times-circle',
-        info: 'fa-info-circle'
-    };
-    return icons[type] || 'fa-info-circle';
-}
-
-// Action Functions
-function downloadReport(results) {
-    const report = generateTextReport(results);
-    const blob = new Blob([report], { type: 'text/plain' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `phishguard-report-${Date.now()}.txt`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    URL.revokeObjectURL(url);
-    
-    showToast('Security report downloaded successfully!', 'success');
-}
-
-function generateTextReport(results) {
-    return `
-PhishGuard Security Analysis Report
-Generated: ${new Date().toLocaleString()}
-
-URL ANALYZED: ${results.url}
-RISK SCORE: ${results.riskScore}/100
-RISK LEVEL: ${getRiskLevel(results.riskScore)}
-FEATURES ANALYZED: ${results.featuresAnalyzed}+
-
-SECURITY WARNINGS:
-${results.warnings.length > 0 ? results.warnings.map(w => `- ${w}`).join('\n') : 'None detected'}
-
-TECHNICAL DETAILS:
-- Domain: ${results.domain}
-- Protocol: ${results.features.httpsProtocol ? 'HTTPS' : 'HTTP'}
-- Domain Age: ${results.serverFeatures?.domainAge || 'Unknown'} days
-- SSL Certificate: ${results.serverFeatures?.sslCertificate ? 'Valid' : 'Invalid'}
-- Reputation Score: ${results.serverFeatures?.reputationScore || 'Unknown'}/100
-
-This report was generated by PhishGuard Advanced Phishing Detection System.
-For more information, visit: https://phishguard.security
-    `.trim();
-}
-
-function analyzeAnother() {
-    document.getElementById('urlInput').value = '';
-    document.getElementById('urlResults').classList.add('hidden');
-    document.getElementById('urlInput').focus();
-    scrollToSection('detector');
+function updateLoadingMessage(message) {
+    const loadingText = document.querySelector('#loadingIndicator .loading-text');
+    if (loadingText) {
+        loadingText.textContent = message;
+    }
 }
 
 function addButtonLoadingStates() {
-    // Add loading states and hover effects to buttons
-    const buttons = document.querySelectorAll('button');
+    const buttons = document.querySelectorAll('button[type="submit"]');
     buttons.forEach(button => {
         button.addEventListener('click', function() {
-            if (!this.disabled && !this.classList.contains('loading')) {
-                this.classList.add('clicked');
-                setTimeout(() => this.classList.remove('clicked'), 200);
+            if (!this.disabled) {
+                this.classList.add('loading');
             }
         });
     });
 }
 
-// Quiz Functions
-function loadQuizQuestions() {
-    // Shuffle and select 5 random questions
-    const shuffled = [...allQuizQuestions].sort(() => 0.5 - Math.random());
-    quizQuestions = shuffled.slice(0, 5);
-    currentQuestionIndex = 0;
-    userAnswers = [];
-    quizScore = 0;
-    
-    updateQuizDisplay();
-}
-
-function updateQuizDisplay() {
-    if (currentQuestionIndex >= quizQuestions.length) {
-        showQuizResults();
-        return;
-    }
-    
-    const question = quizQuestions[currentQuestionIndex];
-    const questionText = document.getElementById('questionText');
-    const optionsContainer = document.getElementById('optionsContainer');
-    const currentQuestionSpan = document.getElementById('currentQuestion');
-    const totalQuestionsSpan = document.getElementById('totalQuestions');
-    const progressBar = document.getElementById('progressBar');
-    const prevBtn = document.getElementById('prevBtn');
-    const nextBtn = document.getElementById('nextBtn');
-    
-    // Update question display
-    questionText.textContent = question.question;
-    currentQuestionSpan.textContent = currentQuestionIndex + 1;
-    totalQuestionsSpan.textContent = quizQuestions.length;
-    
-    // Update progress bar
-    const progress = ((currentQuestionIndex + 1) / quizQuestions.length) * 100;
-    progressBar.style.width = `${progress}%`;
-    
-    // Generate options
-    optionsContainer.innerHTML = question.options.map((option, index) => `
-        <button class="option-button" onclick="selectAnswer('${option}', this)" data-option="${option}">
-            ${option}
-        </button>
-    `).join('');
-    
-    // Update navigation buttons
-    prevBtn.disabled = currentQuestionIndex === 0;
-    
-    // Check if user has answered this question
-    const userAnswer = userAnswers[currentQuestionIndex];
-    if (userAnswer) {
-        const selectedOption = optionsContainer.querySelector(`[data-option="${userAnswer}"]`);
-        if (selectedOption) {
-            selectedOption.classList.add('selected');
-        }
-        nextBtn.textContent = currentQuestionIndex === quizQuestions.length - 1 ? 'Finish Quiz' : 'Next';
-        nextBtn.innerHTML = currentQuestionIndex === quizQuestions.length - 1 ? 
-            'Finish Quiz <i class="fas fa-flag-checkered"></i>' : 
-            'Next <i class="fas fa-chevron-right"></i>';
-    } else {
-        nextBtn.textContent = 'Next';
-        nextBtn.innerHTML = 'Next <i class="fas fa-chevron-right"></i>';
-    }
-}
-
-function selectAnswer(answer, buttonElement) {
-    // Remove previous selections
-    const options = document.querySelectorAll('.option-button');
-    options.forEach(option => option.classList.remove('selected'));
-    
-    // Mark selected option
-    buttonElement.classList.add('selected');
-    
-    // Store answer
-    userAnswers[currentQuestionIndex] = answer;
-    
-    // Update next button
-    const nextBtn = document.getElementById('nextBtn');
-    nextBtn.disabled = false;
-    nextBtn.innerHTML = currentQuestionIndex === quizQuestions.length - 1 ? 
-        'Finish Quiz <i class="fas fa-flag-checkered"></i>' : 
-        'Next <i class="fas fa-chevron-right"></i>';
-}
-
-function nextQuestion() {
-    if (currentQuestionIndex < quizQuestions.length - 1) {
-        currentQuestionIndex++;
-        updateQuizDisplay();
-    } else {
-        showQuizResults();
-    }
-}
-
-function previousQuestion() {
-    if (currentQuestionIndex > 0) {
-        currentQuestionIndex--;
-        updateQuizDisplay();
-    }
-}
-
-function showQuizResults() {
-    // Calculate score
-    let correctAnswers = 0;
-    quizQuestions.forEach((question, index) => {
-        if (userAnswers[index] === question.answer) {
-            correctAnswers++;
+function initializeClipboard() {
+    // Add copy functionality to results
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('copy-btn')) {
+            const textToCopy = e.target.dataset.copy;
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                showToast('Copied to clipboard!', 'success');
+            });
         }
     });
-    
-    const percentage = Math.round((correctAnswers / quizQuestions.length) * 100);
-    const incorrectAnswers = quizQuestions.length - correctAnswers;
-    
-    // Hide quiz content and show results
-    document.getElementById('quizContainer').style.display = 'none';
-    const resultsContainer = document.getElementById('quizResults');
-    resultsContainer.classList.remove('hidden');
-    
-    // Update results display
-    document.getElementById('scoreDisplay').innerHTML = `<div class="score-number">${percentage}%</div>`;
-    document.getElementById('correctAnswers').textContent = correctAnswers;
-    document.getElementById('incorrectAnswers').textContent = incorrectAnswers;
-    document.getElementById('accuracyRate').textContent = `${percentage}%`;
-    
-    // Score message
-    const scoreMessage = document.getElementById('scoreMessage');
-    if (percentage >= 80) {
-        scoreMessage.textContent = 'Excellent! You have strong phishing awareness.';
-        scoreMessage.className = 'score-message safe-text';
-    } else if (percentage >= 60) {
-        scoreMessage.textContent = 'Good job! Consider reviewing phishing protection tips.';
-        scoreMessage.className = 'score-message warning-text';
-    } else {
-        scoreMessage.textContent = 'Keep learning! Review our education section for better protection.';
-        scoreMessage.className = 'score-message danger-text';
-    }
-    
-    // Update quiz score display
-    document.getElementById('quizScore').textContent = percentage + '%';
 }
 
-function restartQuiz() {
-    // Reset quiz state
-    document.getElementById('quizContainer').style.display = 'block';
-    document.getElementById('quizResults').classList.add('hidden');
-    document.getElementById('quizScore').textContent = '0';
-    
-    // Load new random questions
-    loadQuizQuestions();
+function toggleMobileMenu() {
+    mobileMenuOpen = !mobileMenuOpen;
+    const mobileMenu = document.getElementById('mobileMenu');
+    if (mobileMenu) {
+        mobileMenu.classList.toggle('hidden', !mobileMenuOpen);
+    }
 }
 
-// Add custom styles for toast notifications
-const toastStyles = `
-    .toast {
-        position: fixed;
-        top: 20px;
-        right: 20px;
-        background: var(--surface-2);
-        color: var(--text-primary);
-        padding: 1rem 1.5rem;
-        border-radius: 0.5rem;
-        box-shadow: var(--shadow-lg);
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-        opacity: 0;
-        transform: translateX(100%);
-        transition: var(--transition);
-        z-index: 10000;
-        border: 1px solid var(--border);
+function handleKeyboardShortcuts(e) {
+    // Ctrl/Cmd + Enter to analyze URL
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+        const urlForm = document.getElementById('urlForm');
+        if (urlForm && !isAnalyzing) {
+            urlForm.dispatchEvent(new Event('submit'));
+        }
     }
     
-    .toast.show {
-        opacity: 1;
-        transform: translateX(0);
+    // Escape to close mobile menu
+    if (e.key === 'Escape' && mobileMenuOpen) {
+        toggleMobileMenu();
     }
-    
-    .toast-success { border-left: 4px solid var(--safe); }
-    .toast-warning { border-left: 4px solid var(--warning); }
-    .toast-error { border-left: 4px solid var(--danger); }
-    .toast-info { border-left: 4px solid var(--primary); }
-    
-    .error-message {
-        text-align: center;
-        padding: 2rem;
-        background: rgba(239, 68, 68, 0.1);
-        border-radius: 1rem;
-        border: 1px solid rgba(239, 68, 68, 0.3);
-    }
-    
-    .error-message i {
-        font-size: 3rem;
-        color: var(--danger);
-        margin-bottom: 1rem;
-    }
-    
-    .error-message h5 {
-        color: var(--danger);
-        margin-bottom: 0.5rem;
-    }
-    
-    .no-warnings {
-        text-align: center;
-        padding: 2rem;
-        background: rgba(16, 185, 129, 0.1);
-        border-radius: 1rem;
-        border: 1px solid rgba(16, 185, 129, 0.3);
-    }
-    
-    .no-warnings i {
-        font-size: 3rem;
-        color: var(--safe);
-        margin-bottom: 1rem;
-    }
-    
-    .no-warnings h6 {
-        color: var(--safe);
-        margin-bottom: 0.5rem;
-    }
-    
-    .warnings-grid {
-        display: grid;
-        gap: 0.5rem;
-    }
-    
-    .analysis-actions {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        margin-top: 2rem;
-        flex-wrap: wrap;
-    }
-    
-    .action-btn {
-        padding: 0.75rem 1.5rem;
-        border-radius: 0.75rem;
-        border: none;
-        cursor: pointer;
-        transition: var(--transition);
-        font-weight: 600;
-        display: flex;
-        align-items: center;
-        gap: 0.5rem;
-    }
-    
-    .action-btn.primary {
-        background: var(--gradient-primary);
-        color: white;
-    }
-    
-    .action-btn.secondary {
-        background: var(--surface-2);
-        color: var(--text-primary);
-        border: 2px solid var(--border);
-    }
-    
-    .action-btn:hover {
-        transform: translateY(-2px);
-    }
-    
-    .critical-feature {
-        border-left: 3px solid var(--danger);
-    }
-    
-    .critical-badge {
-        background: var(--danger);
-        color: white;
-        font-size: 0.7rem;
-        padding: 0.2rem 0.5rem;
-        border-radius: 0.3rem;
-        font-weight: bold;
-    }
-    
-    .feature-header {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-    }
-    
-    .url-display {
-        word-break: break-all;
-        font-family: monospace;
-        background: var(--surface);
-        padding: 0.2rem 0.5rem;
-        border-radius: 0.3rem;
-    }
-`;
+}
 
-// Add styles to document
-const styleSheet = document.createElement('style');
-styleSheet.textContent = toastStyles;
-document.head.appendChild(styleSheet);
+function handleScrollEffects() {
+    const header = document.querySelector('header');
+    if (header) {
+        if (window.scrollY > 100) {
+            header.classList.add('scrolled');
+        } else {
+            header.classList.remove('scrolled');
+        }
+    }
+}
+
+// Export functions for testing
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = {
+        isValidURL,
+        getRiskLevel,
+        getRiskColor,
+        getRiskIcon
+    };
+}
